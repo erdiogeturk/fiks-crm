@@ -1,10 +1,2 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body, #root { width: 100%; height: 100%; overflow: hidden; }
-```
-
-Kaydet, sonra terminalde:
-```
-cd C:\Users\HP\fiks-crm
-git add .
-git commit -m "Tam ekran duzenleme"
-git push
+#root { width: 100%; height: 100vh; }
