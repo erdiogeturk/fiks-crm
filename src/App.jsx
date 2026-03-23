@@ -1,0 +1,610 @@
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { supabase } from "./supabaseClient";
+
+const STATUSES = [
+  { key: "lead", label: "Lead", color: "#6366f1", bg: "#eef2ff" },
+  { key: "proposal", label: "Teklif", color: "#f59e0b", bg: "#fffbeb" },
+  { key: "negotiation", label: "Müzakere", color: "#3b82f6", bg: "#eff6ff" },
+  { key: "won", label: "Kazanıldı", color: "#10b981", bg: "#ecfdf5" },
+  { key: "lost", label: "Kaybedildi", color: "#ef4444", bg: "#fef2f2" },
+  { key: "onhold", label: "Beklemede", color: "#8b5cf6", bg: "#f5f3ff" },
+];
+
+const PRIORITIES = [
+  { key: "high", label: "Yüksek", color: "#ef4444", icon: "▲" },
+  { key: "medium", label: "Orta", color: "#f59e0b", icon: "●" },
+  { key: "low", label: "Düşük", color: "#6b7280", icon: "▼" },
+];
+
+const SEGMENTS = ["Kurumsal", "KOBİ", "Kamu", "Perakende", "Üretim", "Enerji"];
+const SOURCES = ["Referans", "Web Sitesi", "Fuar", "Soğuk Arama", "Partner", "LinkedIn"];
+const CURRENCIES = ["EUR", "USD", "TRY"];
+
+const formatCurrency = (amount, currency) =>
+  new Intl.NumberFormat("tr-TR", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+
+const formatDate = (d) => {
+  if (!d) return "";
+  return new Date(d).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const StatusBadge = ({ status }) => {
+  const s = STATUSES.find((x) => x.key === status);
+  if (!s) return null;
+  return (
+    <span style={{ background: s.bg, color: s.color, padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, letterSpacing: "0.3px", display: "inline-flex", alignItems: "center", gap: "5px", border: `1px solid ${s.color}22` }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: s.color, display: "inline-block" }} />
+      {s.label}
+    </span>
+  );
+};
+
+const PriorityBadge = ({ priority }) => {
+  const p = PRIORITIES.find((x) => x.key === priority);
+  if (!p) return null;
+  return (
+    <span style={{ color: p.color, fontSize: "12px", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "3px" }}>
+      {p.icon} {p.label}
+    </span>
+  );
+};
+
+const KPICard = ({ title, value, subtitle, color, icon }) => (
+  <div style={{ background: "#fff", borderRadius: "14px", padding: "22px 24px", flex: 1, minWidth: 180, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #f0f0f0", position: "relative", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div>
+        <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>{title}</div>
+        <div style={{ fontSize: "28px", fontWeight: 700, color: "#1e293b", fontFamily: "'DM Sans', sans-serif", lineHeight: 1 }}>{value}</div>
+        {subtitle && <div style={{ fontSize: "12px", color: "#94a3b8", marginTop: 6 }}>{subtitle}</div>}
+      </div>
+      <div style={{ fontSize: "28px", opacity: 0.15 }}>{icon}</div>
+    </div>
+  </div>
+);
+
+const Modal = ({ open, onClose, title, children, wide }) => {
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)" }} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: "18px", padding: "32px", width: wide ? "720px" : "540px", maxWidth: "95vw", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 25px 50px rgba(0,0,0,0.15)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <h2 style={{ margin: 0, fontSize: "20px", fontWeight: 700, color: "#1e293b" }}>{title}</h2>
+          <button onClick={onClose} style={{ background: "#f1f5f9", border: "none", borderRadius: "10px", width: 36, height: 36, cursor: "pointer", fontSize: "18px", color: "#64748b", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const Input = ({ label, ...props }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+    <input {...props} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "14px", outline: "none", transition: "border 0.2s", fontFamily: "inherit", ...(props.style || {}) }} onFocus={(e) => (e.target.style.borderColor = "#6366f1")} onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+  </div>
+);
+
+const Select = ({ label, options, ...props }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+    <select {...props} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "14px", outline: "none", fontFamily: "inherit", background: "#fff", cursor: "pointer" }}>
+      {options.map((o) => (
+        <option key={typeof o === "string" ? o : o.value} value={typeof o === "string" ? o : o.value}>
+          {typeof o === "string" ? o : o.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const Btn = ({ children, variant = "primary", disabled, ...props }) => {
+  const styles = {
+    primary: { background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", border: "none" },
+    secondary: { background: "#f1f5f9", color: "#475569", border: "1px solid #e2e8f0" },
+    success: { background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff", border: "none" },
+    danger: { background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" },
+  };
+  return (
+    <button {...props} disabled={disabled} style={{ padding: "10px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer", fontFamily: "inherit", letterSpacing: "0.3px", transition: "all 0.2s", opacity: disabled ? 0.6 : 1, ...styles[variant], ...(props.style || {}) }}>
+      {children}
+    </button>
+  );
+};
+
+const FiksLogo = () => (
+  <svg viewBox="0 0 120 40" style={{ width: 110, display: "block" }}>
+    <polygon points="8,8 22,20 8,32 14,32 28,20 14,8" fill="#fff" />
+    <polygon points="0,12 12,20 0,28 5,28 17,20 5,12" fill="rgba(255,255,255,0.5)" />
+    <text x="34" y="30" fontFamily="'DM Sans', sans-serif" fontWeight="700" fontSize="28" fill="#fff" letterSpacing="-1">fiks</text>
+  </svg>
+);
+
+const CustomerAvatar = ({ customer, logoUrl, size = 34 }) => {
+  const [imgError, setImgError] = useState(false);
+  const radius = size > 40 ? "12px" : "8px";
+  const fs = size > 40 ? "18px" : "12px";
+  if (logoUrl && !imgError) {
+    return <img src={logoUrl} alt={customer} style={{ width: size, height: size, borderRadius: radius, objectFit: "contain", background: "#fff", border: "1px solid #e2e8f0", flexShrink: 0 }} onError={() => setImgError(true)} />;
+  }
+  return <div style={{ width: size, height: size, borderRadius: radius, background: "linear-gradient(135deg, #6366f1, #818cf8)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: fs, flexShrink: 0 }}>{customer.slice(0, 2)}</div>;
+};
+
+const emptyProject = { customer: "", project: "", amount: "", currency: "EUR", date: new Date().toISOString().slice(0, 10), status: "lead", priority: "medium", segment: "Kurumsal", source: "Referans", probability: 20, contact: "", email: "", phone: "", notes: "", next_action: "", next_action_date: "", logo_url: "" };
+
+export default function CRMApp() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [view, setView] = useState("dashboard");
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterSegment, setFilterSegment] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortDir, setSortDir] = useState("desc");
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [formData, setFormData] = useState({ ...emptyProject });
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [projectActivities, setProjectActivities] = useState([]);
+  const [newActivity, setNewActivity] = useState({ type: "Toplantı", note: "" });
+
+  // ─── SUPABASE DATA FETCHING ───
+  const fetchProjects = useCallback(async () => {
+    const { data, error } = await supabase.from("projects").select("*").order("date", { ascending: false });
+    if (!error && data) setProjects(data);
+    setLoading(false);
+  }, []);
+
+  const fetchActivities = useCallback(async (projectId) => {
+    const { data, error } = await supabase.from("activities").select("*").eq("project_id", projectId).order("date", { ascending: true });
+    if (!error && data) setProjectActivities(data);
+  }, []);
+
+  useEffect(() => { fetchProjects(); }, [fetchProjects]);
+
+  // ─── CRUD OPERATIONS ───
+  const saveProject = async () => {
+    if (!formData.customer || !formData.project) return;
+    setSaving(true);
+    const payload = {
+      customer: formData.customer,
+      project: formData.project,
+      amount: Number(formData.amount) || 0,
+      currency: formData.currency,
+      date: formData.date,
+      status: formData.status,
+      priority: formData.priority,
+      segment: formData.segment,
+      source: formData.source,
+      probability: Number(formData.probability) || 0,
+      contact: formData.contact,
+      email: formData.email,
+      phone: formData.phone,
+      notes: formData.notes,
+      next_action: formData.next_action,
+      next_action_date: formData.next_action_date || null,
+      logo_url: formData.logo_url || "",
+      updated_at: new Date().toISOString(),
+    };
+
+    if (editId) {
+      await supabase.from("projects").update(payload).eq("id", editId);
+    } else {
+      await supabase.from("projects").insert(payload);
+    }
+    await fetchProjects();
+    setShowForm(false);
+    setSaving(false);
+  };
+
+  const deleteProject = async (id) => {
+    await supabase.from("projects").delete().eq("id", id);
+    await fetchProjects();
+    setSelectedProject(null);
+  };
+
+  const updateStatus = async (id, newStatus) => {
+    const prob = newStatus === "won" ? 100 : newStatus === "lost" ? 0 : undefined;
+    const update = prob !== undefined ? { status: newStatus, probability: prob } : { status: newStatus };
+    await supabase.from("projects").update(update).eq("id", id);
+    await fetchProjects();
+  };
+
+  const addActivity = async () => {
+    if (!newActivity.note || !selectedProject) return;
+    await supabase.from("activities").insert({
+      project_id: selectedProject.id,
+      type: newActivity.type,
+      note: newActivity.note,
+      date: new Date().toISOString().slice(0, 10),
+    });
+    await fetchActivities(selectedProject.id);
+    setNewActivity({ type: "Toplantı", note: "" });
+  };
+
+  // ─── OPEN DETAIL / FORM ───
+  const openDetail = async (p) => {
+    setSelectedProject(p);
+    await fetchActivities(p.id);
+  };
+
+  const openForm = (p = null) => {
+    if (p) {
+      setEditId(p.id);
+      setFormData({ ...p });
+    } else {
+      setEditId(null);
+      setFormData({ ...emptyProject });
+    }
+    setShowForm(true);
+  };
+
+  // ─── COMPUTED ───
+  const filtered = useMemo(() => {
+    let list = [...projects];
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter((p) => p.customer.toLowerCase().includes(q) || p.project.toLowerCase().includes(q) || (p.contact || "").toLowerCase().includes(q));
+    }
+    if (filterStatus !== "all") list = list.filter((p) => p.status === filterStatus);
+    if (filterSegment !== "all") list = list.filter((p) => p.segment === filterSegment);
+    if (filterPriority !== "all") list = list.filter((p) => p.priority === filterPriority);
+    list.sort((a, b) => {
+      let va, vb;
+      if (sortBy === "date") { va = a.date; vb = b.date; }
+      else if (sortBy === "amount") { va = a.amount; vb = b.amount; }
+      else if (sortBy === "customer") { va = a.customer; vb = b.customer; }
+      else if (sortBy === "probability") { va = a.probability; vb = b.probability; }
+      else { va = a.date; vb = b.date; }
+      if (va < vb) return sortDir === "asc" ? -1 : 1;
+      if (va > vb) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [projects, search, filterStatus, filterSegment, filterPriority, sortBy, sortDir]);
+
+  const stats = useMemo(() => {
+    const won = projects.filter((p) => p.status === "won").reduce((s, p) => s + Number(p.amount), 0);
+    const pipeline = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + Number(p.amount), 0);
+    const weighted = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + (Number(p.amount) * p.probability) / 100, 0);
+    const closedCount = projects.filter((p) => ["won", "lost"].includes(p.status)).length;
+    const winRate = closedCount > 0 ? Math.round((projects.filter((p) => p.status === "won").length / closedCount) * 100) : 0;
+    return { won, pipeline, weighted, count: projects.length, winRate };
+  }, [projects]);
+
+  const sideItems = [
+    { key: "dashboard", label: "Dashboard", icon: "◐" },
+    { key: "list", label: "Projeler", icon: "☰" },
+    { key: "pipeline", label: "Pipeline", icon: "◧" },
+  ];
+
+  if (loading) return (
+    <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", color: "#6366f1" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: "32px", marginBottom: 12 }}>⬡</div>
+        <div style={{ fontWeight: 600 }}>Fiks CRM yükleniyor...</div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif", display: "flex", height: "100vh", background: "#f8fafc", color: "#1e293b" }}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+      {/* Sidebar */}
+      <div style={{ width: 220, background: "linear-gradient(180deg, #1e1b4b, #312e81)", color: "#fff", padding: "24px 16px", display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <div style={{ padding: "4px 8px", marginBottom: 6 }}>
+          <FiksLogo />
+        </div>
+        <div style={{ fontSize: "11px", color: "#a5b4fc", padding: "0 8px", marginBottom: 32 }}>CRM · Sales Pipeline Manager</div>
+
+        <nav style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {sideItems.map((item) => (
+            <button key={item.key} onClick={() => setView(item.key)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: "10px", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "14px", fontWeight: view === item.key ? 600 : 400, background: view === item.key ? "rgba(255,255,255,0.15)" : "transparent", color: view === item.key ? "#fff" : "#c7d2fe", transition: "all 0.2s", textAlign: "left" }}>
+              <span style={{ fontSize: "16px", width: 22, textAlign: "center" }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div style={{ marginTop: "auto", padding: "16px 8px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+          <div style={{ fontSize: "11px", color: "#a5b4fc", marginBottom: 4 }}>Toplam Pipeline</div>
+          <div style={{ fontSize: "20px", fontWeight: 700 }}>{formatCurrency(stats.pipeline, "EUR")}</div>
+          <div style={{ fontSize: "11px", color: "#a5b4fc", marginTop: 2 }}>Ağırlıklı: {formatCurrency(stats.weighted, "EUR")}</div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "28px 36px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 700, color: "#1e293b" }}>
+              {view === "dashboard" ? "Dashboard" : view === "pipeline" ? "Pipeline Görünümü" : "Proje Listesi"}
+            </h1>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#94a3b8" }}>{projects.length} proje · {formatDate(new Date().toISOString().slice(0, 10))}</p>
+          </div>
+          <Btn onClick={() => openForm()}>＋ Yeni Proje</Btn>
+        </div>
+
+        {/* ═══ DASHBOARD ═══ */}
+        {view === "dashboard" && (
+          <div>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
+              <KPICard title="Toplam Proje" value={stats.count} subtitle="Aktif portföy" color="#6366f1" icon="📊" />
+              <KPICard title="Kazanılan" value={formatCurrency(stats.won, "EUR")} subtitle={`${projects.filter((p) => p.status === "won").length} proje`} color="#10b981" icon="🏆" />
+              <KPICard title="Açık Pipeline" value={formatCurrency(stats.pipeline, "EUR")} subtitle="Devam eden fırsatlar" color="#3b82f6" icon="🔄" />
+              <KPICard title="Kazanma Oranı" value={`%${stats.winRate}`} subtitle="Won / (Won+Lost)" color="#f59e0b" icon="📈" />
+            </div>
+            <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
+              <h3 style={{ margin: "0 0 18px", fontSize: "15px", fontWeight: 600, color: "#475569" }}>Durum Dağılımı</h3>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {STATUSES.map((s) => {
+                  const count = projects.filter((p) => p.status === s.key).length;
+                  const amt = projects.filter((p) => p.status === s.key).reduce((sum, p) => sum + Number(p.amount), 0);
+                  return (
+                    <div key={s.key} style={{ flex: 1, minWidth: 130, padding: "16px", borderRadius: "12px", background: s.bg, border: `1px solid ${s.color}22` }}>
+                      <div style={{ fontSize: "24px", fontWeight: 700, color: s.color }}>{count}</div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: s.color, marginBottom: 4 }}>{s.label}</div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>{formatCurrency(amt, "EUR")}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
+              <h3 style={{ margin: "0 0 18px", fontSize: "15px", fontWeight: 600, color: "#475569" }}>Yaklaşan Aksiyonlar</h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {projects.filter((p) => p.next_action && !["won", "lost"].includes(p.status)).sort((a, b) => (a.next_action_date || "").localeCompare(b.next_action_date || "")).slice(0, 5).map((p) => (
+                  <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: "10px", background: "#f8fafc", cursor: "pointer" }} onClick={() => openDetail(p)}>
+                    <CustomerAvatar customer={p.customer} logoUrl={p.logo_url} size={42} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600 }}>{p.next_action}</div>
+                      <div style={{ fontSize: "12px", color: "#94a3b8" }}>{p.customer} · {p.project}</div>
+                    </div>
+                    <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500 }}>{formatDate(p.next_action_date)}</div>
+                    <PriorityBadge priority={p.priority} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══ LIST VIEW ═══ */}
+        {view === "list" && (
+          <div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
+                <input placeholder="Müşteri, proje veya kişi ara..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: "100%", padding: "10px 14px 10px 38px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }} />
+                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: "14px" }}>⌕</span>
+              </div>
+              <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", background: "#fff" }}>
+                <option value="all">Tüm Durumlar</option>
+                {STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+              </select>
+              <select value={filterSegment} onChange={(e) => setFilterSegment(e.target.value)} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", background: "#fff" }}>
+                <option value="all">Tüm Segmentler</option>
+                {SEGMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", background: "#fff" }}>
+                <option value="all">Tüm Öncelikler</option>
+                {PRIORITIES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select>
+              <select value={`${sortBy}-${sortDir}`} onChange={(e) => { const [b, d] = e.target.value.split("-"); setSortBy(b); setSortDir(d); }} style={{ padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", background: "#fff" }}>
+                <option value="date-desc">Tarih ↓</option>
+                <option value="date-asc">Tarih ↑</option>
+                <option value="amount-desc">Tutar ↓</option>
+                <option value="amount-asc">Tutar ↑</option>
+                <option value="customer-asc">Müşteri A-Z</option>
+                <option value="probability-desc">Olasılık ↓</option>
+              </select>
+            </div>
+            <div style={{ background: "#fff", borderRadius: "14px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {["Müşteri", "Proje", "Tutar", "Olasılık", "Tarih", "Durum", "Öncelik", "Segment", "İşlem"].map((h) => (
+                      <th key={h} style={{ padding: "14px 16px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.8px", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((p) => (
+                    <tr key={p.id} style={{ cursor: "pointer", transition: "background 0.15s" }} onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")} onMouseLeave={(e) => (e.currentTarget.style.background = "")} onClick={() => openDetail(p)}>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <CustomerAvatar customer={p.customer} logoUrl={p.logo_url} size={34} />
+                          <div><div style={{ fontWeight: 600 }}>{p.customer}</div><div style={{ fontSize: "11px", color: "#94a3b8" }}>{p.contact}</div></div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc", maxWidth: 200 }}><div style={{ fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.project}</div></td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc", fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ width: 48, height: 6, borderRadius: 3, background: "#e2e8f0", overflow: "hidden" }}><div style={{ width: `${p.probability}%`, height: "100%", borderRadius: 3, background: p.probability >= 70 ? "#10b981" : p.probability >= 40 ? "#f59e0b" : "#94a3b8" }} /></div>
+                          <span style={{ fontSize: "12px", color: "#64748b" }}>%{p.probability}</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc", color: "#64748b" }}>{formatDate(p.date)}</td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc" }}><StatusBadge status={p.status} /></td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc" }}><PriorityBadge priority={p.priority} /></td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc", color: "#64748b", fontSize: "12px" }}>{p.segment}</td>
+                      <td style={{ padding: "14px 16px", borderBottom: "1px solid #f8fafc" }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button onClick={() => openForm(p)} style={{ background: "#f1f5f9", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", fontSize: "12px", color: "#475569" }}>✎</button>
+                          <button onClick={() => deleteProject(p.id)} style={{ background: "#fef2f2", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", fontSize: "12px", color: "#ef4444" }}>✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && <tr><td colSpan={9} style={{ padding: "48px", textAlign: "center", color: "#94a3b8" }}>Sonuç bulunamadı</td></tr>}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ marginTop: 12, fontSize: "12px", color: "#94a3b8", textAlign: "right" }}>{filtered.length} / {projects.length} proje gösteriliyor</div>
+          </div>
+        )}
+
+        {/* ═══ PIPELINE VIEW ═══ */}
+        {view === "pipeline" && (
+          <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 16 }}>
+            {STATUSES.filter((s) => s.key !== "lost").map((status) => {
+              const items = projects.filter((p) => p.status === status.key);
+              const total = items.reduce((s, p) => s + Number(p.amount), 0);
+              return (
+                <div key={status.key} style={{ minWidth: 260, flex: 1, background: "#fff", borderRadius: "14px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: "50%", background: status.color }} />
+                      <span style={{ fontWeight: 600, fontSize: "14px" }}>{status.label}</span>
+                      <span style={{ background: status.bg, color: status.color, padding: "2px 8px", borderRadius: "12px", fontSize: "11px", fontWeight: 600 }}>{items.length}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 14 }}>{formatCurrency(total, "EUR")}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {items.map((p) => (
+                      <div key={p.id} onClick={() => openDetail(p)} style={{ padding: "14px", borderRadius: "10px", background: "#f8fafc", border: "1px solid #f0f0f0", cursor: "pointer", transition: "all 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = ""; }}>
+                        <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 4 }}>{p.customer}</div>
+                        <div style={{ fontSize: "12px", color: "#64748b", marginBottom: 8 }}>{p.project}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontWeight: 600, fontSize: "14px", color: status.color }}>{formatCurrency(p.amount, p.currency)}</span>
+                          <PriorityBadge priority={p.priority} />
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                          <div style={{ flex: 1, height: 4, borderRadius: 2, background: "#e2e8f0", overflow: "hidden" }}><div style={{ width: `${p.probability}%`, height: "100%", borderRadius: 2, background: status.color }} /></div>
+                          <span style={{ fontSize: "11px", color: "#94a3b8" }}>%{p.probability}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {items.length === 0 && <div style={{ padding: 20, textAlign: "center", color: "#cbd5e1", fontSize: "13px" }}>Boş</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ═══ NEW/EDIT FORM MODAL ═══ */}
+      <Modal open={showForm} onClose={() => setShowForm(false)} title={editId ? "Projeyi Düzenle" : "Yeni Proje Ekle"} wide>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <Input label="Müşteri Adı *" value={formData.customer} onChange={(e) => setFormData({ ...formData, customer: e.target.value })} placeholder="Örn: VAKKO" />
+          <Input label="Proje Adı *" value={formData.project} onChange={(e) => setFormData({ ...formData, project: e.target.value })} placeholder="Örn: S/4HANA Dönüşümü" />
+          <div style={{ gridColumn: "1 / -1" }}>
+            <Input label="Müşteri Logo URL" value={formData.logo_url || ""} onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })} placeholder="https://logo.clearbit.com/vakko.com.tr" />
+            {formData.logo_url && <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10 }}><img src={formData.logo_url} alt="Logo önizleme" style={{ width: 40, height: 40, objectFit: "contain", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#fff" }} onError={(e) => { e.target.style.display = "none"; }} /><span style={{ fontSize: "12px", color: "#94a3b8" }}>Logo önizleme</span></div>}
+          </div>
+          <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ flex: 1 }}><Input label="Tutar" type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0" /></div>
+            <Select label="Para Birimi" options={CURRENCIES} value={formData.currency} onChange={(e) => setFormData({ ...formData, currency: e.target.value })} />
+          </div>
+          <Input label="Proje Tarihi" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+          <Select label="Durum" options={STATUSES.map((s) => ({ value: s.key, label: s.label }))} value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} />
+          <Select label="Öncelik" options={PRIORITIES.map((p) => ({ value: p.key, label: p.label }))} value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} />
+          <Select label="Segment" options={SEGMENTS} value={formData.segment} onChange={(e) => setFormData({ ...formData, segment: e.target.value })} />
+          <Select label="Kaynak" options={SOURCES} value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} />
+          <Input label="Kazanma Olasılığı (%)" type="number" value={formData.probability} onChange={(e) => setFormData({ ...formData, probability: e.target.value })} />
+          <Input label="İletişim Kişisi" value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} placeholder="Ad Soyad" />
+          <Input label="E-posta" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="ornek@firma.com" />
+          <Input label="Telefon" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+90 ..." />
+          <Input label="Sonraki Aksiyon" value={formData.next_action} onChange={(e) => setFormData({ ...formData, next_action: e.target.value })} placeholder="Yapılacak iş" />
+          <Input label="Aksiyon Tarihi" type="date" value={formData.next_action_date || ""} onChange={(e) => setFormData({ ...formData, next_action_date: e.target.value })} />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <label style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>Notlar</label>
+          <textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} style={{ width: "100%", marginTop: 6, padding: "10px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }} placeholder="Proje hakkında notlar..." />
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24 }}>
+          <Btn variant="secondary" onClick={() => setShowForm(false)}>İptal</Btn>
+          <Btn onClick={saveProject} disabled={saving}>{saving ? "Kaydediliyor..." : editId ? "Güncelle" : "Kaydet"}</Btn>
+        </div>
+      </Modal>
+
+      {/* ═══ DETAIL MODAL ═══ */}
+      <Modal open={!!selectedProject} onClose={() => { setSelectedProject(null); setProjectActivities([]); }} title="Proje Detayı" wide>
+        {selectedProject && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <CustomerAvatar customer={selectedProject.customer} logoUrl={selectedProject.logo_url} size={48} />
+                <div>
+                  <div style={{ fontSize: "20px", fontWeight: 700 }}>{selectedProject.customer}</div>
+                  <div style={{ fontSize: "14px", color: "#64748b" }}>{selectedProject.project}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: "24px", fontWeight: 700, color: "#6366f1" }}>{formatCurrency(selectedProject.amount, selectedProject.currency)}</div>
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
+                  <StatusBadge status={selectedProject.status} />
+                  <PriorityBadge priority={selectedProject.priority} />
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }}>
+              {[
+                { l: "İletişim", v: selectedProject.contact || "—" },
+                { l: "E-posta", v: selectedProject.email || "—" },
+                { l: "Telefon", v: selectedProject.phone || "—" },
+                { l: "Segment", v: selectedProject.segment },
+                { l: "Kaynak", v: selectedProject.source },
+                { l: "Olasılık", v: `%${selectedProject.probability}` },
+                { l: "Proje Tarihi", v: formatDate(selectedProject.date) },
+                { l: "Sonraki Aksiyon", v: selectedProject.next_action || "—" },
+                { l: "Aksiyon Tarihi", v: formatDate(selectedProject.next_action_date) },
+              ].map((item) => (
+                <div key={item.l}>
+                  <div style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{item.l}</div>
+                  <div style={{ fontSize: "14px", fontWeight: 500 }}>{item.v}</div>
+                </div>
+              ))}
+            </div>
+            {selectedProject.notes && (
+              <div style={{ background: "#f8fafc", borderRadius: "10px", padding: "14px 18px", marginBottom: 24, fontSize: "13px", color: "#475569", lineHeight: 1.6 }}>
+                <div style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", marginBottom: 6, fontWeight: 600 }}>Notlar</div>
+                {selectedProject.notes}
+              </div>
+            )}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8, fontWeight: 600 }}>Hızlı Durum Güncelle</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {STATUSES.map((s) => (
+                  <button key={s.key} onClick={async () => { await updateStatus(selectedProject.id, s.key); setSelectedProject({ ...selectedProject, status: s.key }); }} style={{ padding: "6px 14px", borderRadius: "8px", border: `1.5px solid ${selectedProject.status === s.key ? s.color : "#e2e8f0"}`, background: selectedProject.status === s.key ? s.bg : "#fff", color: selectedProject.status === s.key ? s.color : "#64748b", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, fontWeight: 600 }}>Aktivite Geçmişi</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                {projectActivities.slice().reverse().map((a) => (
+                  <div key={a.id} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#6366f1", marginTop: 6, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: "13px", fontWeight: 500 }}>{a.note}</div>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: 2 }}>{a.type} · {formatDate(a.date)}</div>
+                    </div>
+                  </div>
+                ))}
+                {projectActivities.length === 0 && <div style={{ color: "#94a3b8", fontSize: "13px" }}>Henüz aktivite yok</div>}
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                <select value={newActivity.type} onChange={(e) => setNewActivity({ ...newActivity, type: e.target.value })} style={{ padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit" }}>
+                  {["Toplantı", "Telefon", "E-posta", "Teklif", "Sunum", "Not", "Kazanım", "Lead"].map((t) => <option key={t}>{t}</option>)}
+                </select>
+                <input placeholder="Aktivite notu..." value={newActivity.note} onChange={(e) => setNewActivity({ ...newActivity, note: e.target.value })} onKeyDown={(e) => e.key === "Enter" && addActivity()} style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "inherit", outline: "none" }} />
+                <Btn onClick={addActivity} style={{ padding: "8px 16px" }}>Ekle</Btn>
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 24, paddingTop: 20, borderTop: "1px solid #f0f0f0" }}>
+              <Btn variant="danger" onClick={() => deleteProject(selectedProject.id)}>Sil</Btn>
+              <Btn variant="secondary" onClick={() => { openForm(selectedProject); setSelectedProject(null); }}>Düzenle</Btn>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
