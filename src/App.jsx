@@ -290,7 +290,7 @@ export default function CRMApp() {
   );
 
   return (
-    <div style={{ fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif", display: "flex", height: "100vh", background: "#f8fafc", color: "#1e293b" }}>
+<div style={{ fontFamily: "'DM Sans', 'Segoe UI', system-ui, sans-serif", display: "flex", height: "100vh", width: "100vw", background: "#f8fafc", color: "#1e293b", overflow: "hidden" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
       {/* Sidebar */}
