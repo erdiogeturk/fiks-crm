@@ -19,7 +19,23 @@ const PRIORITIES = [
 const SEGMENTS = ["Kurumsal", "KOBİ", "Kamu", "Perakende", "Üretim", "Enerji"];
 const SOURCES = ["Referans", "Web Sitesi", "Fuar", "Soğuk Arama", "Partner", "LinkedIn"];
 const CURRENCIES = ["EUR", "USD", "TRY"];
-
+const useExchangeRates = () => {
+  const [rates, setRates] = useState({ EUR: 1, USD: 1, TRY: 1 });
+  useEffect(() => {
+    fetch("https://api.exchangerate-api.com/v4/latest/TRY")
+      .then(r => r.json())
+      .then(data => {
+        setRates({ EUR: data.rates.EUR, USD: data.rates.USD, TRY: 1 });
+      })
+      .catch(() => setRates({ EUR: 0.026, USD: 0.028, TRY: 1 }));
+  }, []);
+  const toTRY = (amount, currency) => {
+    if (currency === "TRY") return Number(amount);
+    if (rates[currency]) return Number(amount) / rates[currency];
+    return Number(amount);
+  };
+  return { rates, toTRY };
+};
 const formatCurrency = (amount, currency) =>
   new Intl.NumberFormat("tr-TR", { style: "currency", currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 
@@ -133,6 +149,7 @@ const CustomerAvatar = ({ customer, logoUrl, size = 34 }) => {
 const emptyProject = { customer: "", project: "", amount: "", currency: "EUR", date: new Date().toISOString().slice(0, 10), status: "lead", priority: "medium", segment: "Kurumsal", source: "Referans", probability: 20, contact: "", email: "", phone: "", notes: "", next_action: "", next_action_date: "", logo_url: "" };
 
 export default function CRMApp() {
+	const { rates, toTRY } = useExchangeRates();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -266,13 +283,14 @@ export default function CRMApp() {
   }, [projects, search, filterStatus, filterSegment, filterPriority, sortBy, sortDir]);
 
   const stats = useMemo(() => {
-    const won = projects.filter((p) => p.status === "won").reduce((s, p) => s + Number(p.amount), 0);
-    const pipeline = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + Number(p.amount), 0);
-    const weighted = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + (Number(p.amount) * p.probability) / 100, 0);
+    const won = projects.filter((p) => p.status === "won").reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
+    const pipeline = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
+    const weighted = projects.filter((p) => !["won", "lost"].includes(p.status)).reduce((s, p) => s + (toTRY(p.amount, p.currency) * p.probability) / 100, 0);
     const closedCount = projects.filter((p) => ["won", "lost"].includes(p.status)).length;
     const winRate = closedCount > 0 ? Math.round((projects.filter((p) => p.status === "won").length / closedCount) * 100) : 0;
     return { won, pipeline, weighted, count: projects.length, winRate };
-  }, [projects]);
+  }, [projects, toTRY]);
+```
 
   const sideItems = [
     { key: "dashboard", label: "Dashboard", icon: "◐" },
@@ -311,8 +329,8 @@ export default function CRMApp() {
 
         <div style={{ marginTop: "auto", padding: "16px 8px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
           <div style={{ fontSize: "11px", color: "#a5b4fc", marginBottom: 4 }}>Toplam Pipeline</div>
-          <div style={{ fontSize: "20px", fontWeight: 700 }}>{formatCurrency(stats.pipeline, "EUR")}</div>
-          <div style={{ fontSize: "11px", color: "#a5b4fc", marginTop: 2 }}>Ağırlıklı: {formatCurrency(stats.weighted, "EUR")}</div>
+          <div style={{ fontSize: "20px", fontWeight: 700 }}>{formatCurrency(stats.pipeline, "TRY")}</div>
+          <div style={{ fontSize: "11px", color: "#a5b4fc", marginTop: 2 }}>Ağırlıklı: {formatCurrency(stats.weighted, "TRY")}</div>
         </div>
       </div>
 
@@ -333,8 +351,8 @@ export default function CRMApp() {
           <div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
               <KPICard title="Toplam Proje" value={stats.count} subtitle="Aktif portföy" color="#6366f1" icon="📊" />
-              <KPICard title="Kazanılan" value={formatCurrency(stats.won, "EUR")} subtitle={`${projects.filter((p) => p.status === "won").length} proje`} color="#10b981" icon="🏆" />
-              <KPICard title="Açık Pipeline" value={formatCurrency(stats.pipeline, "EUR")} subtitle="Devam eden fırsatlar" color="#3b82f6" icon="🔄" />
+              <KPICard title="Kazanılan" value={formatCurrency(stats.won, "TRY")} subtitle={`${projects.filter((p) => p.status === "won").length} proje`} color="#10b981" icon="🏆" />
+              <KPICard title="Açık Pipeline" value={formatCurrency(stats.pipeline, "TRY")} subtitle="Devam eden fırsatlar" color="#3b82f6" icon="🔄" />
               <KPICard title="Kazanma Oranı" value={`%${stats.winRate}`} subtitle="Won / (Won+Lost)" color="#f59e0b" icon="📈" />
             </div>
             <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
@@ -342,7 +360,9 @@ export default function CRMApp() {
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 {STATUSES.map((s) => {
                   const count = projects.filter((p) => p.status === s.key).length;
-                  const amt = projects.filter((p) => p.status === s.key).reduce((sum, p) => sum + Number(p.amount), 0);
+                  const amt = projects.filter((p) => p.status === s.key).reduce((sum, p) => sum + toTRY(p.amount, p.currency), 0);
+				  formatCurrency(amt, "EUR")` → `formatCurrency(amt, "TRY")
+
                   return (
                     <div key={s.key} style={{ flex: 1, minWidth: 130, padding: "16px", borderRadius: "12px", background: s.bg, border: `1px solid ${s.color}22` }}>
                       <div style={{ fontSize: "24px", fontWeight: 700, color: s.color }}>{count}</div>
@@ -452,7 +472,9 @@ export default function CRMApp() {
           <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 16 }}>
             {STATUSES.filter((s) => s.key !== "lost").map((status) => {
               const items = projects.filter((p) => p.status === status.key);
-              const total = items.reduce((s, p) => s + Number(p.amount), 0);
+              const total = items.reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
+			  formatCurrency(total, "EUR")` → `formatCurrency(total, "TRY")
+;
               return (
                 <div key={status.key} style={{ minWidth: 260, flex: 1, background: "#fff", borderRadius: "14px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
