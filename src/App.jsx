@@ -290,7 +290,6 @@ export default function CRMApp() {
     const winRate = closedCount > 0 ? Math.round((projects.filter((p) => p.status === "won").length / closedCount) * 100) : 0;
     return { won, pipeline, weighted, count: projects.length, winRate };
   }, [projects, toTRY]);
-```
 
   const sideItems = [
     { key: "dashboard", label: "Dashboard", icon: "◐" },
@@ -361,13 +360,11 @@ export default function CRMApp() {
                 {STATUSES.map((s) => {
                   const count = projects.filter((p) => p.status === s.key).length;
                   const amt = projects.filter((p) => p.status === s.key).reduce((sum, p) => sum + toTRY(p.amount, p.currency), 0);
-				  formatCurrency(amt, "EUR")` → `formatCurrency(amt, "TRY")
-
                   return (
                     <div key={s.key} style={{ flex: 1, minWidth: 130, padding: "16px", borderRadius: "12px", background: s.bg, border: `1px solid ${s.color}22` }}>
                       <div style={{ fontSize: "24px", fontWeight: 700, color: s.color }}>{count}</div>
                       <div style={{ fontSize: "13px", fontWeight: 600, color: s.color, marginBottom: 4 }}>{s.label}</div>
-                      <div style={{ fontSize: "12px", color: "#64748b" }}>{formatCurrency(amt, "EUR")}</div>
+                      <div style={{ fontSize: "12px", color: "#64748b" }}>{formatCurrency(amt, "TRY")}</div>
                     </div>
                   );
                 })}
@@ -473,8 +470,6 @@ export default function CRMApp() {
             {STATUSES.filter((s) => s.key !== "lost").map((status) => {
               const items = projects.filter((p) => p.status === status.key);
               const total = items.reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
-			  formatCurrency(total, "EUR")` → `formatCurrency(total, "TRY")
-;
               return (
                 <div key={status.key} style={{ minWidth: 260, flex: 1, background: "#fff", borderRadius: "14px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -484,7 +479,7 @@ export default function CRMApp() {
                       <span style={{ background: status.bg, color: status.color, padding: "2px 8px", borderRadius: "12px", fontSize: "11px", fontWeight: 600 }}>{items.length}</span>
                     </div>
                   </div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 14 }}>{formatCurrency(total, "EUR")}</div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 14 }}>{formatCurrency(total, "TRY")}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {items.map((p) => (
                       <div key={p.id} onClick={() => openDetail(p)} style={{ padding: "14px", borderRadius: "10px", background: "#f8fafc", border: "1px solid #f0f0f0", cursor: "pointer", transition: "all 0.15s" }} onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }} onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = ""; }}>
