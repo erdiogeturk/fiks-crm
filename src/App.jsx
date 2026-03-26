@@ -65,8 +65,8 @@ const PriorityBadge = ({ priority }) => {
   );
 };
 
-const KPICard = ({ title, value, subtitle, color, icon }) => (
-  <div style={{ background: "#fff", borderRadius: "14px", padding: "22px 24px", flex: 1, minWidth: 180, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #f0f0f0", position: "relative", overflow: "hidden" }}>
+const KPICard = ({ title, value, subtitle, color, icon, onClick }) => (
+  <div onClick={onClick} style={{ background: "#fff", borderRadius: "14px", padding: "22px 24px", flex: 1, minWidth: 180, boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)", border: "1px solid #f0f0f0", position: "relative", overflow: "hidden", cursor: onClick ? "pointer" : "default", transition: "all 0.2s" }} onMouseEnter={(e) => { if (onClick) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.1)"; } }} onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)"; }}>
     <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
       <div>
@@ -285,8 +285,9 @@ export default function CRMApp() {
     list.sort((a, b) => {
       let va, vb;
       if (sortBy === "date") { va = a.date; vb = b.date; }
-      else if (sortBy === "amount") { va = a.amount; vb = b.amount; }
-      else if (sortBy === "customer") { va = a.customer; vb = b.customer; }
+      else if (sortBy === "amount") { va = Number(a.amount); vb = Number(b.amount); }
+      else if (sortBy === "customer") { va = a.customer.toLowerCase(); vb = b.customer.toLowerCase(); }
+      else if (sortBy === "project") { va = a.project.toLowerCase(); vb = b.project.toLowerCase(); }
       else if (sortBy === "probability") { va = a.probability; vb = b.probability; }
       else { va = a.date; vb = b.date; }
       if (va < vb) return sortDir === "asc" ? -1 : 1;
@@ -363,9 +364,9 @@ export default function CRMApp() {
         {view === "dashboard" && (
           <div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 28 }}>
-              <KPICard title="Toplam Proje" value={stats.count} subtitle="Aktif portföy" color="#6366f1" icon="📊" />
-              <KPICard title="Kazanılan" value={formatCurrency(stats.won, "TRY")} subtitle={`${projects.filter((p) => p.status === "won").length} proje`} color="#10b981" icon="🏆" />
-              <KPICard title="Açık Pipeline" value={formatCurrency(stats.pipeline, "TRY")} subtitle="Devam eden fırsatlar" color="#3b82f6" icon="🔄" />
+              <KPICard title="Toplam Proje" value={stats.count} subtitle="Aktif portföy" color="#6366f1" icon="📊" onClick={() => { setFilterStatus("all"); setView("list"); }} />
+              <KPICard title="Kazanılan" value={formatCurrency(stats.won, "TRY")} subtitle={`${projects.filter((p) => p.status === "won").length} proje`} color="#10b981" icon="🏆" onClick={() => goToStatus("won")} />
+              <KPICard title="Açık Pipeline" value={formatCurrency(stats.pipeline, "TRY")} subtitle="Devam eden fırsatlar" color="#3b82f6" icon="🔄" onClick={() => { setFilterStatus("all"); setView("pipeline"); }} />
               <KPICard title="Kazanma Oranı" value={`%${stats.winRate}`} subtitle="Won / (Won+Lost)" color="#f59e0b" icon="📈" />
             </div>
             <div style={{ background: "#fff", borderRadius: "14px", padding: "24px", marginBottom: 20, boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
@@ -436,8 +437,20 @@ export default function CRMApp() {
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
                 <thead>
                   <tr style={{ background: "#f8fafc" }}>
-                    {["Müşteri", "Proje", "Tutar", "Olasılık", "Tarih", "Durum", "Öncelik", "Segment", "İşlem"].map((h) => (
-                      <th key={h} style={{ padding: "14px 16px", textAlign: "left", fontWeight: 600, color: "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.8px", borderBottom: "1px solid #f0f0f0" }}>{h}</th>
+                    {[
+                      { label: "Müşteri", key: "customer" },
+                      { label: "Proje", key: "project" },
+                      { label: "Tutar", key: "amount" },
+                      { label: "Olasılık", key: "probability" },
+                      { label: "Tarih", key: "date" },
+                      { label: "Durum", key: null },
+                      { label: "Öncelik", key: null },
+                      { label: "Segment", key: null },
+                      { label: "İşlem", key: null },
+                    ].map((h) => (
+                      <th key={h.label} onClick={() => { if (h.key) { if (sortBy === h.key) { setSortDir(sortDir === "desc" ? "asc" : "desc"); } else { setSortBy(h.key); setSortDir(h.key === "customer" || h.key === "project" ? "asc" : "desc"); } } }} style={{ padding: "14px 16px", textAlign: "left", fontWeight: 600, color: sortBy === h.key ? "#4f46e5" : "#64748b", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.8px", borderBottom: "1px solid #f0f0f0", cursor: h.key ? "pointer" : "default", userSelect: "none", transition: "color 0.2s" }}>
+                        {h.label}{sortBy === h.key ? (sortDir === "desc" ? " ↓" : " ↑") : ""}
+                      </th>
                     ))}
                   </tr>
                 </thead>
@@ -485,7 +498,7 @@ export default function CRMApp() {
               const items = projects.filter((p) => p.status === status.key);
               const total = items.reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
               return (
-                <div key={status.key} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.background = "#f8fafc"; }} onDragLeave={(e) => { e.currentTarget.style.background = "#fff"; }} onDrop={(e) => { e.preventDefault(); e.currentTarget.style.background = "#fff"; handleDrop(status.key); }} style={{ minWidth: 260, flex: 1, background: "#fff", borderRadius: "14px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0", transition: "background 0.2s" }}>
+                <div key={status.key} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; e.currentTarget.style.background = status.bg; e.currentTarget.style.border = `2px dashed ${status.color}`; }} onDragLeave={(e) => { e.currentTarget.style.background = "#fff"; e.currentTarget.style.border = "1px solid #f0f0f0"; }} onDrop={(e) => { e.preventDefault(); e.currentTarget.style.background = "#fff"; e.currentTarget.style.border = "1px solid #f0f0f0"; const id = Number(e.dataTransfer.getData("text/plain")); if (id) updateStatus(id, status.key); }} style={{ minWidth: 260, flex: 1, background: "#fff", borderRadius: "14px", padding: "18px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0", transition: "all 0.2s" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 10, height: 10, borderRadius: "50%", background: status.color }} />
@@ -496,7 +509,7 @@ export default function CRMApp() {
                   <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: 14 }}>{formatCurrency(total, "TRY")}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, minHeight: 60 }}>
                     {items.map((p) => (
-                      <div key={p.id} draggable onDragStart={() => setDraggedId(p.id)} onDragEnd={() => setDraggedId(null)} onClick={() => openDetail(p)} style={{ padding: "14px", borderRadius: "10px", background: draggedId === p.id ? "#e2e8f0" : "#f8fafc", border: "1px solid #f0f0f0", cursor: "grab", transition: "all 0.15s", opacity: draggedId === p.id ? 0.5 : 1 }} onMouseEnter={(e) => { if (!draggedId) { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; } }} onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = ""; }}>
+                      <div key={p.id} draggable onDragStart={(e) => { e.dataTransfer.setData("text/plain", String(p.id)); e.dataTransfer.effectAllowed = "move"; setDraggedId(p.id); }} onDragEnd={() => setDraggedId(null)} onClick={() => { if (!draggedId) openDetail(p); }} style={{ padding: "14px", borderRadius: "10px", background: draggedId === p.id ? "#e2e8f0" : "#f8fafc", border: draggedId === p.id ? "2px dashed #94a3b8" : "1px solid #f0f0f0", cursor: "grab", transition: "all 0.15s", opacity: draggedId === p.id ? 0.5 : 1 }} onMouseEnter={(e) => { if (!draggedId) { e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; } }} onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = ""; }}>
                         <div style={{ fontWeight: 600, fontSize: "13px", marginBottom: 4 }}>{p.customer}</div>
                         <div style={{ fontSize: "12px", color: "#64748b", marginBottom: 8 }}>{p.project}</div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
