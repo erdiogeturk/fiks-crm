@@ -1,61 +1,42 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
-/* ─── Fiks CRM — Full Featured App ─── */
+/* ─── Fiks CRM — Supabase Connected ─── */
 
-// ─── MOCK DATA ───
-const CUSTOMERS = [
-  { id: 1, name: "SAKA Group", logo: "SKG", color: "#6366f1" },
-  { id: 2, name: "Akdeniz Chemson", logo: "AC", color: "#f59e0b" },
-  { id: 3, name: "Abdioğulları Plastik ve Ambalaj Sanayi A.Ş.", logo: "AB", color: "#8b5cf6" },
-  { id: 4, name: "Oyak Dijital A.Ş.", logo: "OD", color: "#ef4444" },
-  { id: 5, name: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", logo: "KS", color: "#ec4899" },
-  { id: 6, name: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", logo: "OP", color: "#14b8a6" },
-  { id: 7, name: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", logo: "YE", color: "#3b82f6" },
-  { id: 8, name: "EREĞLİ DEMİR VE ÇELİK FABRİKALARI T.A.Ş.", logo: "ER", color: "#64748b" },
-  { id: 9, name: "İzocam Ticaret ve Sanayi A.Ş.", logo: "İZ", color: "#22c55e" },
-  { id: 10, name: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", logo: "BR", color: "#0ea5e9" },
-  { id: 11, name: "Defacto Perakende Ticaret A.Ş.", logo: "DF", color: "#a855f7" },
-  { id: 12, name: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", logo: "AS", color: "#10b981" },
-  { id: 13, name: "Norm Digital A.Ş.", logo: "ND", color: "#f97316" },
-  { id: 14, name: "Erdemir Çelik Servir Merkezi A.Ş. (ERSEM)", logo: "ES", color: "#06b6d4" },
-  { id: 15, name: "VAKKO Tekstil ve Hazır Giyim Sanayi İşletmeleri A.Ş.", logo: "VK", color: "#1e293b" },
-  { id: 16, name: "Solenis Kimya San. ve Tic. A.Ş.", logo: "SL", color: "#84cc16" },
-  { id: 17, name: "Almatis GmbH", logo: "AL", color: "#7c3aed" },
-];
+// ─── SUPABASE CLIENT ───
+const SUPABASE_URL = "https://yevlpkvsqbsxesyuctry.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlldmxwa3ZzcWJzeGVzeXVjdHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTg5MzAsImV4cCI6MjA1Nzg3NDkzMH0.a1SgPYMduPqaiR7KbmGFB0bLkfj7FYpFCnUPqXMl4WM";
 
-const STATUSES = {
-  Lead: { color: "#3b82f6", bg: "#eff6ff", border: "#bfdbfe", label: "Lead" },
-  Teklif: { color: "#f59e0b", bg: "#fffbeb", border: "#fde68a", label: "Teklif" },
-  Müzakere: { color: "#8b5cf6", bg: "#f5f3ff", border: "#ddd6fe", label: "Müzakere" },
-  Kazanıldı: { color: "#22c55e", bg: "#f0fdf4", border: "#bbf7d0", label: "Kazanıldı" },
-  Kaybedildi: { color: "#ef4444", bg: "#fef2f2", border: "#fecaca", label: "Kaybedildi" },
-  Beklemede: { color: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0", label: "Beklemede" },
+const sb = {
+  async query(table, { select = "*", filters, order, eq } = {}) {
+    let url = `${SUPABASE_URL}/rest/v1/${table}?select=${encodeURIComponent(select)}`;
+    if (eq) Object.entries(eq).forEach(([k, v]) => { url += `&${k}=eq.${encodeURIComponent(v)}`; });
+    if (order) url += `&order=${order}`;
+    if (filters) url += filters;
+    const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    return res.json();
+  },
+  async insert(table, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+  async update(table, id, data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: "PATCH", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+  async remove(table, id) {
+    await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method: "DELETE", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+    });
+  },
 };
 
-const PRIORITIES = { Yüksek: { color: "#ef4444", icon: "▲" }, Orta: { color: "#f59e0b", icon: "●" }, Düşük: { color: "#22c55e", icon: "▼" } };
-
-const INITIAL_PROJECTS = [
-  { id: 1, customerId: 7, name: "SAKA Group S4/Hana Projesi", contact: "Selahattin SAKA", amount: 600000, currency: "EUR", date: "2026-05-01", status: "Lead", priority: "Yüksek", probability: 70, action: null },
-  { id: 2, customerId: 8, name: "PP Modül & Ariba Entegrasyonu", contact: "Hülya Yakışır", amount: 1900000, currency: "EUR", date: "2026-04-15", status: "Teklif", priority: "Yüksek", probability: 35, action: null },
-  { id: 3, customerId: 9, name: "İthalat-İhracat Paketi", contact: "Caner Kabahasanoğlu", amount: 25000, currency: "EUR", date: "2026-04-06", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 4, customerId: 4, name: "Seyahat ve Masaraf Yönetimi", contact: "Dilek Kaya", amount: 4750000, currency: "TRY", date: "2026-04-06", status: "Teklif", priority: "Yüksek", probability: 70, action: { text: "Durum Sorgulanacak", date: "2026-04-13" } },
-  { id: 5, customerId: 5, name: "SAP Framework Upgrade (JDK 21.9 & Spring Geçiş Projesi)", contact: "Volkan BENTEŞEN", amount: 420000, currency: "TRY", date: "2026-04-06", status: "Müzakere", priority: "Orta", probability: 80, action: null },
-  { id: 6, customerId: 6, name: "Kıbrıs Bordro Migrasyon", contact: "Yasemin Yüce", amount: 28875, currency: "EUR", date: "2026-04-06", status: "Teklif", priority: "Yüksek", probability: 70, action: { text: "Teklif durum sorgulama", date: "2026-03-15" } },
-  { id: 7, customerId: 1, name: "OpetFuchs Kârlılık Analiz Modeli Kurulum", contact: "Semiye Koca", amount: 489000, currency: "TRY", date: "2026-04-02", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 8, customerId: 7, name: "SAKA GROUP SAP S/4HANA RFP Süreç Kapsamı Danışmanlık Teklifi", contact: "Selahattin Saka", amount: 23000, currency: "EUR", date: "2026-04-01", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 9, customerId: 10, name: "Norm Fasteners Morocco SAP Roll-out Projesi", contact: "Serap Hasgüçmen Tarakçı", amount: 5218600, currency: "TRY", date: "2026-03-26", status: "Kazanıldı", priority: "Yüksek", probability: 80, action: null },
-  { id: 10, customerId: 11, name: "SAP Modül Destek Teklifi", contact: "Esra Çırık", amount: 18000, currency: "TRY", date: "2026-03-26", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 11, customerId: 12, name: "Devops Hizmeti", contact: "Mehmet Yılmaz", amount: 840000, currency: "TRY", date: "2026-03-20", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 12, customerId: 3, name: "S/4HANA Projesi", contact: "Ali Demir", amount: 800000, currency: "EUR", date: "2026-03-15", status: "Lead", priority: "Yüksek", probability: 50, action: null },
-  { id: 13, customerId: 14, name: "ERSEM T&M SAP Modül Destek", contact: "Ayşe Kara", amount: 3000000, currency: "TRY", date: "2026-03-10", status: "Müzakere", priority: "Yüksek", probability: 80, action: { text: "Onay bekleniyor.", date: "2026-03-24" } },
-  { id: 14, customerId: 2, name: "PP Modül & Ariba Entegrasyonu", contact: "Mehmet Özkan", amount: 1900000, currency: "EUR", date: "2026-03-05", status: "Teklif", priority: "Yüksek", probability: 35, action: { text: "İhale Daveti Beklenecek", date: "2026-03-18" } },
-  { id: 15, customerId: 15, name: "VAKKO SAP CX Danışmanlık", contact: "Zeynep Aydın", amount: 1250000, currency: "TRY", date: "2026-02-28", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 16, customerId: 16, name: "Solenis MSA Destek Hizmeti", contact: "Burak Çelik", amount: 780000, currency: "TRY", date: "2026-02-20", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 17, customerId: 17, name: "BW→Datasphere Migrasyon", contact: "Hans Müller", amount: 254700, currency: "EUR", date: "2026-02-15", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 18, customerId: 13, name: "Norm Fasteners Morocco SAP Roll-out Projesi", contact: "Serap Hasgüçmen Tarakçı", amount: 5218600, currency: "TRY", date: "2026-02-10", status: "Kazanıldı", priority: "Yüksek", probability: 80, action: null },
-  { id: 19, customerId: 6, name: "Devops Hizmeti", contact: "Yasemin Yüce", amount: 840000, currency: "TRY", date: "2026-02-05", status: "Kazanıldı", priority: "Yüksek", probability: 100, action: null },
-  { id: 20, customerId: 9, name: "İzocam Kayseri Fabrika S/4HANA", contact: "Caner Kabahasanoğlu", amount: 350000, currency: "TRY", date: "2026-01-28", status: "Kaybedildi", priority: "Yüksek", probability: 0, action: null },
-];
+// ─── CONSTANTS ───
 
 // ─── i18n ───
 const TRANSLATIONS = {
@@ -173,39 +154,72 @@ const TRANSLATIONS = {
   },
 };
 
+// ─── CONSTANTS ───
+const STATUSES = {
+  Lead: { color: "#3b82f6", bg: "#eff6ff", border: "#bfdbfe", label: "Lead" },
+  Teklif: { color: "#f59e0b", bg: "#fffbeb", border: "#fde68a", label: "Teklif" },
+  Müzakere: { color: "#8b5cf6", bg: "#f5f3ff", border: "#ddd6fe", label: "Müzakere" },
+  Kazanıldı: { color: "#22c55e", bg: "#f0fdf4", border: "#bbf7d0", label: "Kazanıldı" },
+  Kaybedildi: { color: "#ef4444", bg: "#fef2f2", border: "#fecaca", label: "Kaybedildi" },
+  Beklemede: { color: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0", label: "Beklemede" },
+};
+const PRIORITIES = { Yüksek: { color: "#ef4444", icon: "▲" }, Orta: { color: "#f59e0b", icon: "●" }, Düşük: { color: "#22c55e", icon: "▼" } };
+
 // ─── HELPERS ───
 const formatCurrency = (amount, currency) => {
-  if (currency === "EUR") return `€${amount.toLocaleString("tr-TR")}`;
-  return `₺${amount.toLocaleString("tr-TR")}`;
+  const n = Number(amount);
+  if (currency === "EUR") return `€${n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  if (currency === "USD") return `$${n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return `₺${n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+};
+const formatFullTRY = (amount) => `₺${Number(amount).toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+let EUR_TO_TRY = 38.5;
+let USD_TO_TRY = 36.0;
+// Güncel kur çekme
+const fetchRates = async () => {
+  try {
+    const res = await fetch("https://api.exchangerate-api.com/v4/latest/EUR");
+    const data = await res.json();
+    if (data?.rates?.TRY) EUR_TO_TRY = data.rates.TRY;
+    if (data?.rates?.USD) USD_TO_TRY = data.rates.TRY / data.rates.USD;
+  } catch (e) { /* fallback sabit kur */ }
+};
+fetchRates();
+const toTRY = (amount, currency) => {
+  const n = Number(amount);
+  if (currency === "EUR") return n * EUR_TO_TRY;
+  if (currency === "USD") return n * USD_TO_TRY;
+  return n;
 };
 
-const EUR_TO_TRY = 38.5;
-const toTRY = (amount, currency) => currency === "EUR" ? amount * EUR_TO_TRY : amount;
-
-const getCustomer = (id) => CUSTOMERS.find(c => c.id === id) || { name: "?", logo: "?", color: "#666" };
+// Map Supabase project row to internal format
+const mapProject = (p, customers) => {
+  const cust = customers.find(c => c.id === p.customer_id) || { id: p.customer_id, name: "?", logo_code: "?", color: "#666" };
+  return {
+    id: p.id, customerId: p.customer_id, name: p.name, contact: p.contact_person,
+    amount: Number(p.amount), currency: p.currency, date: p.project_date,
+    status: p.status, priority: p.priority, probability: p.probability,
+    action: p.action_text ? { text: p.action_text, date: p.action_date } : null,
+    _customer: cust,
+  };
+};
+const mapCustomer = (c) => ({ ...c, logo: c.logo_code });
 
 // ─── FIKS LOGO SVG ───
 const FiksLogo = ({ white }) => (
-  <svg viewBox="0 0 400 120" style={{ height: 32, width: "auto" }}>
-    <g fill={white ? "#fff" : "#1a1f4e"}>
-      <polygon points="0,60 45,20 45,45 80,15 80,60 45,90 45,65 0,95" />
-      <path d="M110,30h25v8h-16v12h14v8h-14v22h-9V30z" />
-      <rect x="150" y="30" width="9" height="50" rx="2" />
-      <circle cx="154.5" cy="22" r="5.5" />
-      <path d="M180,30h9v18h.2L204,30h11l-17,20 18,30h-11l-13-22h-.2v22h-9V30z" style={{letterSpacing:1}} />
-      <path d="M232,56c1,5,5,8,11,8,5,0,8-2,8-5,0-4-4-5-10-6-8-2-15-4-15-13,0-8,7-12,16-12s15,4,17,12h-9c-1-4-4-6-8-6s-7,2-7,5c0,3,3,4,9,5,8,2,16,4,16,14,0,9-7,14-17,14-11,0-18-5-19-14h8z" />
-    </g>
+  <svg viewBox="0 0 117 40" style={{ height: 36, width: "auto" }} xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M11.531 26.6197L18.4465 22.6282L13.8324 19.9634L34.5775 7.9858V0L0 19.9634L11.531 26.6197ZM69.9591 7.75363C69.9591 9.61103 68.4534 11.1169 66.5958 11.1169C64.7383 11.1169 63.2324 9.61103 63.2324 7.75363C63.2324 5.89596 64.7383 4.39013 66.5958 4.39013C68.4534 4.39013 69.9591 5.89596 69.9591 7.75363ZM89.7 13.7437L81.1944 22.3506V4.81542H75.1859V36.1282H81.1944V29.1225L83.2424 27.2056L90.3352 36.1282H97.5704L87.2213 23.4773L97.6128 13.7437H89.7ZM115.763 27.2801C115.538 26.631 115.184 26.0534 114.706 25.5449C114.141 24.9521 113.38 24.4308 112.421 23.9789C111.49 23.528 110.348 23.1182 108.994 22.752C107.951 22.4703 107.118 22.2153 106.497 21.99C105.904 21.7646 105.454 21.5675 105.144 21.3972C105.027 21.3155 104.92 21.2266 104.823 21.1306C104.685 20.9942 104.566 20.8431 104.466 20.6773C104.325 20.3956 104.255 20.0984 104.255 19.7887C104.255 19.4787 104.311 19.1956 104.424 18.9423C104.565 18.6606 104.762 18.4337 105.017 18.2648C105.27 18.0956 105.582 17.969 105.948 17.8844C106.203 17.8296 106.477 17.7927 106.769 17.7734C106.927 17.763 107.091 17.7577 107.259 17.7577C107.796 17.7577 108.401 17.8703 109.079 18.0956C109.756 18.3211 110.404 18.6322 111.025 19.0268C111.675 19.421 112.252 19.8592 112.761 20.3377L115.976 16.7831C115.27 16.0772 114.438 15.4718 113.479 14.9634C112.548 14.4268 111.532 14.0182 110.432 13.7365C109.332 13.4548 108.204 13.314 107.048 13.314C105.892 13.314 104.792 13.4829 103.748 13.8223C102.704 14.1324 101.773 14.5844 100.955 15.1761C100.165 15.7689 99.5451 16.4872 99.093 17.3335C98.6422 18.152 98.4155 19.0689 98.4155 20.0845C98.4155 20.9308 98.5421 21.7069 98.7958 22.4111C99.0775 23.0887 99.4732 23.7225 99.9801 24.3153C100.573 24.9365 101.362 25.4999 102.349 26.0084C103.365 26.4872 104.592 26.911 106.031 27.2775C106.218 27.3283 106.397 27.3787 106.57 27.4284C106.825 27.5017 107.066 27.5737 107.291 27.6446C107.676 27.7661 108.017 27.8835 108.315 27.997C108.908 28.1944 109.345 28.3632 109.627 28.5041C110.134 28.8703 110.389 29.3648 110.389 29.9856C110.389 30.2958 110.318 30.5928 110.177 30.8745C110.065 31.1282 109.882 31.3534 109.627 31.5521C109.373 31.721 109.062 31.8618 108.696 31.9746C108.358 32.059 107.976 32.1014 107.554 32.1014C106.482 32.1014 105.41 31.9042 104.338 31.5083C103.266 31.0858 102.293 30.4082 101.418 29.4773L97.6944 32.6928C98.6817 33.9055 99.9789 34.8646 101.587 35.5703C103.224 36.2477 105.086 36.5859 107.173 36.5859C108.866 36.5859 110.389 36.2901 111.744 35.697C113.097 35.0759 114.155 34.2294 114.917 33.1577C115.707 32.0576 116.101 30.8168 116.101 29.4337C116.101 28.6435 115.989 27.9239 115.763 27.2761V27.2801ZM69.6 13.8985H63.5915V36.283H69.6V13.8985ZM55.0944 10.5056C54.7549 10.6745 54.5014 10.9435 54.3324 11.3097C54.162 11.6492 54.0775 12.0857 54.0775 12.6224V14.3153H58.9014V19.3928H54.0775V36.149H48.0268V19.3928H44.6845V14.3153H48.0268V12.1999C48.0268 10.8167 48.3365 9.56179 48.9577 8.43365C49.5789 7.30551 50.4253 6.4167 51.4972 5.76749C52.597 5.11828 53.8817 4.79424 55.3479 4.79424C56.3351 4.79424 57.2662 4.96479 58.1408 5.30259C59.0155 5.61262 59.762 6.04918 60.3831 6.61394L58.6056 11.014C58.4083 10.8918 58.2066 10.7823 58.0008 10.6852C57.8246 10.6022 57.6453 10.5282 57.4634 10.4633C57.0972 10.2943 56.7576 10.2096 56.4477 10.2096C55.9125 10.2096 55.4606 10.3084 55.0944 10.5056ZM34.5775 31.941V39.9241L13.8324 27.9465L34.5775 15.9692V23.9549L27.6606 27.9465L34.5775 31.941Z" fill={white ? "#ffffff" : "#1A2B67"} />
   </svg>
 );
 
 // ─── CUSTOMER AVATAR ───
 const Avatar = ({ customer, size = 36 }) => (
   <div style={{
-    width: size, height: size, borderRadius: 8, background: customer.color + "18",
-    color: customer.color, display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: size * 0.35, fontWeight: 700, flexShrink: 0, border: `1.5px solid ${customer.color}30`,
+    width: size, height: size, borderRadius: 8, background: (customer.color || "#666") + "18",
+    color: customer.color || "#666", display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: size * 0.35, fontWeight: 700, flexShrink: 0, border: `1.5px solid ${(customer.color || "#666")}30`,
   }}>
-    {customer.logo}
+    {customer.logo_code || customer.logo || "?"}
   </div>
 );
 
@@ -253,7 +267,7 @@ const Icons = {
 };
 
 // ─── DASHBOARD ───
-function Dashboard({ projects, t, setPage, setStatusFilter, setSelectedCustomer }) {
+function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelectedCustomer }) {
   const totalProjects = projects.length;
   const uniqueCustomers = new Set(projects.map(p => p.customerId)).size;
   const wonProjects = projects.filter(p => p.status === "Kazanıldı");
@@ -277,7 +291,7 @@ function Dashboard({ projects, t, setPage, setStatusFilter, setSelectedCustomer 
   const kpiCards = [
     { label: t.total, value: totalProjects, sub: t.project, color: "#3b82f6", icon: "📊", onClick: () => setPage("projects") },
     { label: t.customer, value: uniqueCustomers, sub: t.registered, color: "#8b5cf6", icon: "👥", onClick: () => setPage("customers") },
-    { label: t.won, value: `₺${(wonAmount / 1000).toFixed(0)}K`, sub: `${wonProjects.length} ${t.wonProjects}`, color: "#22c55e", icon: "🏆", onClick: () => handleStatusClick("Kazanıldı") },
+    { label: t.won, value: formatFullTRY(wonAmount), sub: `${wonProjects.length} ${t.wonProjects}`, color: "#22c55e", icon: "🏆", onClick: () => handleStatusClick("Kazanıldı") },
     { label: t.winRate, value: `%${winRate}`, sub: t.wonClosed, color: "#f59e0b", icon: "📈", onClick: () => setPage("projects") },
   ];
 
@@ -293,7 +307,7 @@ function Dashboard({ projects, t, setPage, setStatusFilter, setSelectedCustomer 
           onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,.06)"; }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: k.color, marginBottom: 8 }}>{k.label}</div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: "#1e293b" }}>{k.value}</div>
+            <div style={{ fontSize: typeof k.value === "string" && k.value.length > 10 ? 22 : 32, fontWeight: 800, color: "#1e293b" }}>{k.value}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{k.sub}</div>
             <div style={{ position: "absolute", right: 16, top: 16, fontSize: 28, opacity: .15 }}>{k.icon}</div>
           </div>
@@ -324,9 +338,9 @@ function Dashboard({ projects, t, setPage, setStatusFilter, setSelectedCustomer 
         {upcomingActions.length === 0 ? (
           <div style={{ color: "#94a3b8", textAlign: "center", padding: 24 }}>—</div>
         ) : upcomingActions.map(p => {
-          const cust = getCustomer(p.customerId);
+          const cust = customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" };
           return (
-            <div key={p.id} onClick={() => { setSelectedCustomer(getCustomer(p.customerId)); setPage("customerDetail"); }} style={{
+            <div key={p.id} onClick={() => { setSelectedCustomer(customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" }); setPage("customerDetail"); }} style={{
               display: "flex", alignItems: "center", gap: 14, padding: "12px 0",
               borderBottom: "1px solid #f1f5f9", cursor: "pointer", borderRadius: 8,
               transition: "background .1s",
@@ -354,13 +368,13 @@ function Dashboard({ projects, t, setPage, setStatusFilter, setSelectedCustomer 
 }
 
 // ─── PROJECTS TABLE ───
-function ProjectsTable({ projects, t, setPage, setSelectedCustomer }) {
+function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer }) {
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState("");
   const [priorityF, setPriorityF] = useState("");
 
   const filtered = projects.filter(p => {
-    const cust = getCustomer(p.customerId);
+    const cust = customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" };
     const matchSearch = !search || cust.name.toLowerCase().includes(search.toLowerCase()) || p.name.toLowerCase().includes(search.toLowerCase());
     const matchStatus = !statusF || p.status === statusF;
     const matchPriority = !priorityF || p.priority === priorityF;
@@ -397,7 +411,7 @@ function ProjectsTable({ projects, t, setPage, setSelectedCustomer }) {
           </thead>
           <tbody>
             {filtered.map(p => {
-              const cust = getCustomer(p.customerId);
+              const cust = customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" };
               const s = STATUSES[p.status];
               return (
                 <tr key={p.id} style={{ borderBottom: "1px solid #f8fafc", cursor: "pointer", transition: "background .1s" }}
@@ -441,7 +455,7 @@ function ProjectsTable({ projects, t, setPage, setSelectedCustomer }) {
 }
 
 // ─── PIPELINE (KANBAN) ───
-function Pipeline({ projects, setProjects, t, statusFilter }) {
+function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusChange }) {
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const scrollRefs = useRef({});
@@ -456,15 +470,13 @@ function Pipeline({ projects, setProjects, t, statusFilter }) {
   const handleDragOver = (e, status) => { e.preventDefault(); setDragOver(status); };
   const handleDrop = (e, newStatus) => {
     e.preventDefault();
-    if (dragItem) {
-      setProjects(prev => prev.map(p => p.id === dragItem ? { ...p, status: newStatus, probability: newStatus === "Kazanıldı" ? 100 : newStatus === "Kaybedildi" ? 0 : p.probability } : p));
+    if (dragItem && onStatusChange) {
+      onStatusChange(dragItem, newStatus);
     }
     setDragItem(null);
     setDragOver(null);
   };
 
-  // Touch drag support
-  const [touchDrag, setTouchDrag] = useState(null);
 
   return (
     <div style={{ display: "flex", gap: 16, height: "calc(100vh - 160px)", overflow: "auto", paddingBottom: 20 }}>
@@ -495,7 +507,7 @@ function Pipeline({ projects, setProjects, t, statusFilter }) {
             <div ref={el => scrollRefs.current[status] = el}
               style={{ flex: 1, overflow: "auto", padding: "0 12px 12px", minHeight: 0 }}>
               {col.sort((a, b) => b.amount - a.amount).map(p => {
-                const cust = getCustomer(p.customerId);
+                const cust = customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" };
                 return (
                   <div key={p.id} draggable
                     onDragStart={e => handleDragStart(e, p.id)}
@@ -539,9 +551,9 @@ function Pipeline({ projects, setProjects, t, statusFilter }) {
 }
 
 // ─── CUSTOMERS LIST ───
-function CustomersList({ t, setPage, setSelectedCustomer, projects }) {
+function CustomersList({ customers, t, setPage, setSelectedCustomer, projects }) {
   const [search, setSearch] = useState("");
-  const filtered = CUSTOMERS.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = customers.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div>
@@ -571,7 +583,7 @@ function CustomersList({ t, setPage, setSelectedCustomer, projects }) {
 }
 
 // ─── CUSTOMER DETAIL (SAP BP FORM — 5 TABS) ───
-function CustomerDetail({ customer, t, setPage, projects }) {
+function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
   const [tab, setTab] = useState(0);
   const [contacts, setContacts] = useState([{ id: 1, firstName: "", lastName: "", position: "", phone: "", email: "" }]);
   const [activities, setActivities] = useState([]);
@@ -759,7 +771,7 @@ function CustomerDetail({ customer, t, setPage, projects }) {
                 {custProjects.map((p, i) => (
                   <div key={p.id} style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 120px 100px", gap: 0, padding: "10px 16px", fontSize: 13, borderBottom: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
                     <span style={{ fontWeight: 600, color: "#3b82f6" }}>SB-{1000 + p.id}</span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{getCustomer(p.customerId).name}</span>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" }.name}</span>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
                     <span style={{ color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR")}</span>
                     <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</span>
@@ -793,11 +805,29 @@ function CustomerDetail({ customer, t, setPage, projects }) {
 export default function FiksCRM() {
   const [page, setPage] = useState("dashboard");
   const [lang, setLang] = useState("tr");
-  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [customers, setCustomers] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from Supabase
+  const fetchData = useCallback(async () => {
+    try {
+      const [custData, projData] = await Promise.all([
+        sb.query("customers", { order: "name.asc" }),
+        sb.query("projects", { order: "project_date.desc" }),
+      ]);
+      const custs = (custData || []).map(mapCustomer);
+      setCustomers(custs);
+      setProjects((projData || []).map(p => mapProject(p, custs)));
+    } catch (e) { console.error("Fetch error:", e); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -805,6 +835,31 @@ export default function FiksCRM() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  // Pipeline drag — update Supabase
+  const handleProjectStatusChange = async (projectId, newStatus) => {
+    const prob = newStatus === "Kazanıldı" ? 100 : newStatus === "Kaybedildi" ? 0 : undefined;
+    const update = { status: newStatus };
+    if (prob !== undefined) update.probability = prob;
+    await sb.update("projects", projectId, update);
+    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: newStatus, probability: prob ?? p.probability } : p));
+  };
+
+  // Save customer
+  const handleSaveCustomer = async (custData) => {
+    if (custData.isNew) {
+      const { isNew, logo, ...data } = custData;
+      const result = await sb.insert("customers", { ...data, logo_code: data.logo_code || data.name.substring(0, 2).toUpperCase() });
+      if (result?.[0]) {
+        setCustomers(prev => [...prev, mapCustomer(result[0])]);
+        setSelectedCustomer(mapCustomer(result[0]));
+      }
+    } else {
+      const { logo, _customer, ...data } = custData;
+      await sb.update("customers", custData.id, data);
+      setCustomers(prev => prev.map(c => c.id === custData.id ? { ...c, ...data } : c));
+    }
+  };
 
   const t = TRANSLATIONS[lang];
 
@@ -827,41 +882,42 @@ export default function FiksCRM() {
   const pageTitle = page === "customerDetail" ? (selectedCustomer?.name || t.customers)
     : navItems.find(n => n.key === page)?.label || t.dashboard;
 
+  if (loading) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#f5f6fa", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <div style={{ textAlign: "center" }}>
+        <FiksLogo />
+        <div style={{ marginTop: 16, color: "#94a3b8", fontSize: 14 }}>Yükleniyor...</div>
+      </div>
+    </div>
+  );
+
   return (
     <div style={styles.app}>
-      {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 19 }} />
       )}
 
-      {/* Sidebar */}
       <aside style={{
         ...styles.sidebar,
         ...(isMobile ? styles.sidebarMobile : {}),
         ...(isMobile && sidebarOpen ? styles.sidebarOpen : {}),
       }}>
-        <div style={styles.sidebarLogo}>
-          <FiksLogo white />
-        </div>
+        <div style={styles.sidebarLogo}><FiksLogo white /></div>
         <div style={styles.sidebarLabel}>CRM · Sales Pipeline</div>
-
         <nav style={{ flex: 1, paddingTop: 4 }}>
           {navItems.map(n => (
             <div key={n.key} onClick={() => handleNav(n.key)} style={styles.navItem(page === n.key || (page === "customerDetail" && n.key === "customers"))}>
-              <span style={styles.navIcon}>{n.icon}</span>
-              {n.label}
+              <span style={styles.navIcon}>{n.icon}</span>{n.label}
             </div>
           ))}
         </nav>
-
         <div style={styles.pipelineTotal}>
           <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500, marginBottom: 4 }}>{t.totalPipeline}</div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>₺{(totalPipeline / 1000000).toFixed(1)}M</div>
-          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{t.weighted}: ₺{(weightedPipeline / 1000000).toFixed(1)}M</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{formatFullTRY(totalPipeline)}</div>
+          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{t.weighted}: {formatFullTRY(weightedPipeline)}</div>
         </div>
       </aside>
 
-      {/* Main */}
       <main style={styles.main}>
         <div style={styles.topBar}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -880,21 +936,19 @@ export default function FiksCRM() {
               <option value="en">🇬🇧 EN</option>
               <option value="ar">🇸🇦 AR</option>
             </select>
-            {page === "projects" && (
-              <button style={styles.btn("#3b82f6")}>{t.newProject}</button>
-            )}
+            {page === "projects" && <button style={styles.btn("#3b82f6")}>{t.newProject}</button>}
             {page === "customers" && (
-              <button onClick={() => { setSelectedCustomer({ id: Date.now(), name: "", logo: "?", color: "#3b82f6", isNew: true }); setPage("customerDetail"); }} style={styles.btn("#3b82f6")}>{t.newCustomer}</button>
+              <button onClick={() => { setSelectedCustomer({ isNew: true, name: "", logo_code: "", color: "#3b82f6", customer_type: "corporate", customer_role: "potential", status: "active" }); setPage("customerDetail"); }} style={styles.btn("#3b82f6")}>{t.newCustomer}</button>
             )}
           </div>
         </div>
 
         <div style={styles.content}>
-          {page === "dashboard" && <Dashboard projects={projects} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
-          {page === "customers" && <CustomersList t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} />}
-          {page === "projects" && <ProjectsTable projects={projects} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} />}
-          {page === "pipeline" && <Pipeline projects={projects} setProjects={setProjects} t={t} statusFilter={statusFilter} />}
-          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} t={t} setPage={setPage} projects={projects} />}
+          {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
+          {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} />}
+          {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} />}
+          {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} />}
+          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} />}
         </div>
       </main>
     </div>
