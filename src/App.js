@@ -225,15 +225,20 @@ const FiksLogo = ({ white }) => (
 );
 
 // ─── CUSTOMER AVATAR ───
-const Avatar = ({ customer, size = 36 }) => (
-  <div style={{
-    width: size, height: size, borderRadius: 8, background: (customer.color || "#666") + "18",
-    color: customer.color || "#666", display: "flex", alignItems: "center", justifyContent: "center",
-    fontSize: size * 0.35, fontWeight: 700, flexShrink: 0, border: `1.5px solid ${(customer.color || "#666")}30`,
-  }}>
-    {customer.logo_code || customer.logo || "?"}
-  </div>
-);
+const Avatar = ({ customer, size = 36 }) => {
+  if (customer.logo_url) {
+    return <img src={customer.logo_url} alt="" style={{ width: size, height: size, borderRadius: 8, objectFit: "contain", border: `1.5px solid ${(customer.color || "#666")}30`, background: "#fff", flexShrink: 0 }} />;
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: 8, background: (customer.color || "#666") + "18",
+      color: customer.color || "#666", display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: size * 0.35, fontWeight: 700, flexShrink: 0, border: `1.5px solid ${(customer.color || "#666")}30`,
+    }}>
+      {customer.logo_code || customer.logo || "?"}
+    </div>
+  );
+};
 
 // ─── STYLES ───
 const styles = {
@@ -604,12 +609,14 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
     customer_role: customer.customer_role || "potential", customer_type: customer.customer_type || "corporate",
     status: customer.status || "active", tax_office: customer.tax_office || "", tax_number: customer.tax_number || "",
     responsible_employee: customer.responsible_employee || "", logo_code: customer.logo_code || "",
-    color: customer.color || "#3b82f6",
+    color: customer.color || "#3b82f6", logo_url: customer.logo_url || "",
   });
   const [contacts, setContacts] = useState([{ id: 1, firstName: "", lastName: "", position: "", phone: "", email: "" }]);
   const [activities, setActivities] = useState([]);
   const [newActivity, setNewActivity] = useState({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
   const [saving, setSaving] = useState(false);
+  const [logoPreview, setLogoPreview] = useState(customer.logo_url || null);
+  const logoInputRef = useRef(null);
   const tabs = [t.headerInfo, t.addressDetail, t.contactDetail, t.activities, t.salesDocs];
   const custProjects = projects.filter(p => p.customerId === customer.id);
 
@@ -634,6 +641,23 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
     setNewActivity({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoPreview(URL.createObjectURL(file));
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${customer.id || Date.now()}.${ext}`;
+      await fetch(`${SUPABASE_URL}/storage/v1/object/logos/${fileName}`, {
+        method: "POST", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": file.type, "x-upsert": "true" },
+        body: file,
+      });
+      const url = `${SUPABASE_URL}/storage/v1/object/public/logos/${fileName}`;
+      updateForm("logo_url", url);
+      setLogoPreview(url);
+    } catch (err) { console.error("Logo upload error:", err); }
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) { alert("Müşteri adı zorunlu"); return; }
     setSaving(true);
@@ -652,7 +676,15 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
 
       <div style={{ ...styles.card, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-          <Avatar customer={{ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() }} size={56} />
+          <div style={{ position: "relative", cursor: "pointer" }} onClick={() => logoInputRef.current?.click()}>
+            {logoPreview ? (
+              <img src={logoPreview} alt="" style={{ width: 56, height: 56, borderRadius: 8, objectFit: "contain", border: "1.5px solid #e5e7eb", background: "#fff" }} />
+            ) : (
+              <Avatar customer={{ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() }} size={56} />
+            )}
+            <div style={{ position: "absolute", bottom: -4, right: -4, background: "#3b82f6", border: "2px solid #fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff" }}>+</div>
+            <input ref={logoInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleLogoUpload} />
+          </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{form.name || (t.newCustomer || "Yeni Müşteri")}</h2>
             <div style={{ fontSize: 13, color: "#94a3b8" }}>{custProjects.length} {t.project}</div>
