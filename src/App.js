@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 
 // ─── SUPABASE CLIENT ───
 const SUPABASE_URL = "https://yevlpkvsqbsxesyuctry.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlldmxwa3ZzcWJzeGVzeXVjdHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyOTg5MzAsImV4cCI6MjA1Nzg3NDkzMH0.a1SgPYMduPqaiR7KbmGFB0bLkfj7FYpFCnUPqXMl4WM";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlldmxwa3ZzcWJzeGVzeXVjdHJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MjM4NjAsImV4cCI6MjA4OTM5OTg2MH0.xMXZwphtapRjdItdoFK_pL8QEEYPcjsuwjX_6dYt1AI";
 
 const sb = {
   async query(table, { select = "*", filters, order, eq } = {}) {
