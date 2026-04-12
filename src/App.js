@@ -192,13 +192,25 @@ const toTRY = (amount, currency) => {
   return n;
 };
 
+// Normalize status/priority from DB (handles missing Turkish chars)
+const normalizeStatus = (s) => {
+  if (!s) return "Lead";
+  const map = { "Kazanildi": "Kazanıldı", "Kaybedildi": "Kaybedildi", "Muzakere": "Müzakere", "Lead": "Lead", "Teklif": "Teklif", "Beklemede": "Beklemede" };
+  return map[s] || s;
+};
+const normalizePriority = (p) => {
+  if (!p) return "Yüksek";
+  const map = { "Yuksek": "Yüksek", "Orta": "Orta", "Dusuk": "Düşük" };
+  return map[p] || p;
+};
+
 // Map Supabase project row to internal format
 const mapProject = (p, customers) => {
   const cust = customers.find(c => c.id === p.customer_id) || { id: p.customer_id, name: "?", logo_code: "?", color: "#666" };
   return {
     id: p.id, customerId: p.customer_id, name: p.name, contact: p.contact_person,
     amount: Number(p.amount), currency: p.currency, date: p.project_date,
-    status: p.status, priority: p.priority, probability: p.probability,
+    status: normalizeStatus(p.status), priority: normalizePriority(p.priority), probability: p.probability,
     action: p.action_text ? { text: p.action_text, date: p.action_date } : null,
     _customer: cust,
   };
@@ -327,7 +339,7 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
             >
               <div style={{ fontSize: 28, fontWeight: 800, color: s.color }}>{statusGroups[key]?.count || 0}</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: s.color }}>{t[key]}</div>
-              <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>₺{((statusGroups[key]?.amount || 0) / 1000).toFixed(0)}K</div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{formatFullTRY(statusGroups[key]?.amount || 0)}</div>
             </div>
           ))}
         </div>
@@ -502,7 +514,7 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
                   padding: "2px 8px", borderRadius: 10,
                 }}>{col.length}</span>
               </div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>₺{(colAmount / 1000).toFixed(0)}K</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>{formatFullTRY(colAmount)}</div>
             </div>
             <div ref={el => scrollRefs.current[status] = el}
               style={{ flex: 1, overflow: "auto", padding: "0 12px 12px", minHeight: 0 }}>
@@ -572,7 +584,7 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
               <Avatar customer={c} size={48} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{custProjects.length} {t.project} · ₺{(totalVal / 1000).toFixed(0)}K</div>
+                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{custProjects.length} {t.project} · {formatFullTRY(totalVal)}</div>
               </div>
             </div>
           );
@@ -585,11 +597,23 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
 // ─── CUSTOMER DETAIL (SAP BP FORM — 5 TABS) ───
 function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
   const [tab, setTab] = useState(0);
+  const [form, setForm] = useState({
+    name: customer.name || "", name1: customer.name1 || "", name2: customer.name2 || "",
+    name3: customer.name3 || "", name4: customer.name4 || "",
+    customer_number: customer.customer_number || "", external_number: customer.external_number || "",
+    customer_role: customer.customer_role || "potential", customer_type: customer.customer_type || "corporate",
+    status: customer.status || "active", tax_office: customer.tax_office || "", tax_number: customer.tax_number || "",
+    responsible_employee: customer.responsible_employee || "", logo_code: customer.logo_code || "",
+    color: customer.color || "#3b82f6",
+  });
   const [contacts, setContacts] = useState([{ id: 1, firstName: "", lastName: "", position: "", phone: "", email: "" }]);
   const [activities, setActivities] = useState([]);
   const [newActivity, setNewActivity] = useState({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
+  const [saving, setSaving] = useState(false);
   const tabs = [t.headerInfo, t.addressDetail, t.contactDetail, t.activities, t.salesDocs];
   const custProjects = projects.filter(p => p.customerId === customer.id);
+
+  const updateForm = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
   const inputStyle = {
     width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb",
@@ -610,6 +634,16 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
     setNewActivity({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
   };
 
+  const handleSave = async () => {
+    if (!form.name.trim()) { alert("Müşteri adı zorunlu"); return; }
+    setSaving(true);
+    try {
+      await onSave({ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() });
+      if (customer.isNew) setPage("customers");
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
   return (
     <div>
       <button onClick={() => setPage("customers")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#3b82f6", fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
@@ -618,14 +652,13 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
 
       <div style={{ ...styles.card, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-          <Avatar customer={customer} size={56} />
+          <Avatar customer={{ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() }} size={56} />
           <div style={{ flex: 1 }}>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{customer.isNew ? (t.newCustomer || "Yeni Müşteri") : customer.name}</h2>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{form.name || (t.newCustomer || "Yeni Müşteri")}</h2>
             <div style={{ fontSize: 13, color: "#94a3b8" }}>{custProjects.length} {t.project}</div>
           </div>
         </div>
 
-        {/* Tab bar — scrollable on mobile */}
         <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #f1f5f9", marginBottom: 20, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           {tabs.map((tb, i) => (
             <button key={i} onClick={() => setTab(i)} style={{
@@ -636,36 +669,35 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
           ))}
         </div>
 
-        {/* TAB 0: Başlık Bilgileri */}
         {tab === 0 && (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 20px" }}>
-              <div style={fieldGroup}><label style={labelStyle}>{t.custNumber}</label><input style={inputStyle} defaultValue={customer.isNew ? "" : `M-${1000 + customer.id}`} placeholder="Otomatik" readOnly={!customer.isNew} /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.custExtNumber}</label><input style={inputStyle} placeholder="Harici numara" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.custNumber}</label><input style={inputStyle} value={form.customer_number} onChange={e => updateForm("customer_number", e.target.value)} placeholder="Otomatik" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.custExtNumber}</label><input style={inputStyle} value={form.external_number} onChange={e => updateForm("external_number", e.target.value)} placeholder="Harici numara" /></div>
               <div style={fieldGroup}><label style={labelStyle}>{t.custRole}</label>
-                <select style={inputStyle}><option value="potential">{t.custRolePotential}</option><option value="real">{t.custRoleReal}</option></select>
+                <select style={inputStyle} value={form.customer_role} onChange={e => updateForm("customer_role", e.target.value)}><option value="potential">{t.custRolePotential}</option><option value="real">{t.custRoleReal}</option></select>
               </div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.name1}</label><input style={inputStyle} defaultValue={customer.name} placeholder="Ad" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.name2}</label><input style={inputStyle} placeholder="Ad1" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.name3}</label><input style={inputStyle} placeholder="Ad2" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.name4}</label><input style={inputStyle} placeholder="Ad3" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.name5}</label><input style={inputStyle} placeholder="Ad4" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.name1}</label><input style={inputStyle} value={form.name} onChange={e => updateForm("name", e.target.value)} placeholder="Firma Adi" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.name2}</label><input style={inputStyle} value={form.name1} onChange={e => updateForm("name1", e.target.value)} placeholder="Ad1" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.name3}</label><input style={inputStyle} value={form.name2} onChange={e => updateForm("name2", e.target.value)} placeholder="Ad2" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.name4}</label><input style={inputStyle} value={form.name3} onChange={e => updateForm("name3", e.target.value)} placeholder="Ad3" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.name5}</label><input style={inputStyle} value={form.name4} onChange={e => updateForm("name4", e.target.value)} placeholder="Ad4" /></div>
               <div style={fieldGroup}><label style={labelStyle}>{t.custType}</label>
-                <select style={inputStyle}><option value="corporate">{t.custTypeCorporate}</option><option value="individual">{t.custTypeIndividual}</option></select>
+                <select style={inputStyle} value={form.customer_type} onChange={e => updateForm("customer_type", e.target.value)}><option value="corporate">{t.custTypeCorporate}</option><option value="individual">{t.custTypeIndividual}</option></select>
               </div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.createdDate}</label><input style={inputStyle} type="date" defaultValue={new Date().toISOString().split("T")[0]} /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.createdDate}</label><input style={inputStyle} type="date" defaultValue={new Date().toISOString().split("T")[0]} readOnly /></div>
               <div style={fieldGroup}><label style={labelStyle}>{t.modifiedDate}</label><input style={inputStyle} type="date" defaultValue={new Date().toISOString().split("T")[0]} readOnly /></div>
               <div style={fieldGroup}><label style={labelStyle}>{t.status}</label>
-                <select style={inputStyle}>
-                  <option value="active">{t.statusActive}</option>
-                  <option value="blocked">{t.statusBlocked}</option>
-                  <option value="inactive">{t.statusInactive}</option>
+                <select style={inputStyle} value={form.status} onChange={e => updateForm("status", e.target.value)}>
+                  <option value="active">{t.statusActive}</option><option value="blocked">{t.statusBlocked}</option><option value="inactive">{t.statusInactive}</option>
                 </select>
               </div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.taxOffice}</label><input style={inputStyle} placeholder="Vergi Dairesi" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.taxNumber}</label><input style={inputStyle} placeholder="VKN / TCKN" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.responsibleEmployee}</label><input style={inputStyle} placeholder="Sorumlu kişi" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.createdBy}</label><input style={inputStyle} defaultValue="Erdi Ögetürk" readOnly /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.taxOffice}</label><input style={inputStyle} value={form.tax_office} onChange={e => updateForm("tax_office", e.target.value)} placeholder="Vergi Dairesi" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.taxNumber}</label><input style={inputStyle} value={form.tax_number} onChange={e => updateForm("tax_number", e.target.value)} placeholder="VKN / TCKN" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.responsibleEmployee}</label><input style={inputStyle} value={form.responsible_employee} onChange={e => updateForm("responsible_employee", e.target.value)} placeholder="Sorumlu kisi" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.createdBy}</label><input style={inputStyle} defaultValue="Erdi Ogeturk" readOnly /></div>
+              <div style={fieldGroup}><label style={labelStyle}>Logo Kodu (2 harf)</label><input style={inputStyle} value={form.logo_code} onChange={e => updateForm("logo_code", e.target.value.toUpperCase().slice(0,3))} placeholder="AB" maxLength={3} /></div>
+              <div style={fieldGroup}><label style={labelStyle}>Renk</label><input style={{ ...inputStyle, height: 42 }} type="color" value={form.color} onChange={e => updateForm("color", e.target.value)} /></div>
             </div>
           </div>
         )}
@@ -771,7 +803,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
                 {custProjects.map((p, i) => (
                   <div key={p.id} style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 120px 100px", gap: 0, padding: "10px 16px", fontSize: 13, borderBottom: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
                     <span style={{ fontWeight: 600, color: "#3b82f6" }}>SB-{1000 + p.id}</span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" }.name}</span>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(customers.find(c => c.id === p.customerId) || {}).name || "?"}</span>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
                     <span style={{ color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR")}</span>
                     <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</span>
@@ -793,7 +825,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
         )}
 
         <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
-          <button style={styles.btn("#3b82f6")}>{t.save}</button>
+          <button onClick={handleSave} disabled={saving} style={styles.btn("#3b82f6")}>{saving ? "Kaydediliyor..." : t.save}</button>
           <button onClick={() => setPage("customers")} style={{ ...styles.btn("#e5e7eb"), color: "#64748b" }}>{t.cancel}</button>
         </div>
       </div>
