@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 /* ─── Fiks CRM — Full Featured App ─── */
 
@@ -464,7 +464,6 @@ function Pipeline({ projects, setProjects, t, statusFilter }) {
   };
 
   // Touch drag support
-  const [touchDrag, setTouchDrag] = useState(null);
 
   return (
     <div style={{ display: "flex", gap: 16, height: "calc(100vh - 160px)", overflow: "auto", paddingBottom: 20 }}>
