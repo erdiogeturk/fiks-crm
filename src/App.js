@@ -385,7 +385,7 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
 }
 
 // ─── PROJECTS TABLE ───
-function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer }) {
+function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, onProjectClick }) {
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState("");
   const [priorityF, setPriorityF] = useState("");
@@ -442,7 +442,7 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer })
                       <span style={{ fontWeight: 500, fontSize: 13, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cust.name}</span>
                     </div>
                   </td>
-                  <td style={{ padding: "12px 16px", fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</td>
+                  <td onClick={() => onProjectClick && onProjectClick(p)} style={{ padding: "12px 16px", fontSize: 13, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", cursor: "pointer", color: "#3b82f6", fontWeight: 500 }}>{p.name}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, color: "#64748b" }}>{p.contact}</td>
                   <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</td>
                   <td style={{ padding: "12px 16px", fontSize: 12, color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric" })}</td>
@@ -458,7 +458,7 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer })
                     </span>
                   </td>
                   <td style={{ padding: "12px 16px", display: "flex", gap: 8 }}>
-                    <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#94a3b8" }}>✎</button>
+                    <button onClick={() => onProjectClick && onProjectClick(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#3b82f6" }}>✎</button>
                     <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#fca5a5" }}>✕</button>
                   </td>
                 </tr>
@@ -603,10 +603,175 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
   );
 }
 
+// ─── PROJE / TEKLİF DETAY SAYFASI ───
+function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDelete }) {
+  const isNew = !project?.id;
+  const customer = customers.find(c => c.id === project?.customerId) || null;
+
+  const [form, setForm] = useState({
+    name: project?.name || "",
+    customerId: project?.customerId || (customers[0]?.id || ""),
+    contact: project?.contact || "",
+    amount: project?.amount || "",
+    currency: project?.currency || "TRY",
+    date: project?.date || new Date().toISOString().split("T")[0],
+    status: project?.status || "Lead",
+    priority: project?.priority || "Yüksek",
+    probability: project?.probability ?? 50,
+    action_text: project?.action?.text || "",
+    action_date: project?.action?.date || "",
+  });
+  const [saving, setSaving] = useState(false);
+
+  const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSave = async () => {
+    if (!form.name.trim()) { alert("Teklif adı zorunlu"); return; }
+    setSaving(true);
+    const payload = {
+      name: form.name, customer_id: form.customerId, contact_person: form.contact,
+      amount: Number(form.amount) || 0, currency: form.currency,
+      project_date: form.date, status: form.status, priority: form.priority,
+      probability: Number(form.probability) || 0,
+      action_text: form.action_text || null, action_date: form.action_date || null,
+    };
+    try {
+      if (isNew) {
+        const result = await sb.insert("projects", payload);
+        if (result?.[0] && onSave) onSave(result[0], true);
+      } else {
+        await sb.update("projects", project.id, payload);
+        if (onSave) onSave({ ...project, ...form, id: project.id }, false);
+      }
+      setPage(prevPage || "projects");
+    } catch (e) { console.error(e); }
+    setSaving(false);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`"${form.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    await sb.remove("projects", project.id).catch(console.error);
+    if (onDelete) onDelete(project.id);
+    setPage(prevPage || "projects");
+  };
+
+  const inp = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 14, outline: "none", background: "#f9fafb", boxSizing: "border-box" };
+  const lbl = { fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4, display: "block" };
+  const fg = { marginBottom: 16 };
+  const selectedCust = customers.find(c => c.id === form.customerId);
+  const s = STATUSES[form.status];
+
+  return (
+    <div>
+      <button onClick={() => setPage(prevPage || "projects")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#3b82f6", fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+        {Icons.back} {t.back}
+      </button>
+
+      <div style={{ ...styles.card }}>
+        {/* Başlık */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            {selectedCust && <Avatar customer={selectedCust} size={48} />}
+            <div>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{form.name || "Yeni Teklif"}</h2>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>{selectedCust?.name || "—"}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {s && <span style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{t[form.status]}</span>}
+            {!isNew && (
+              <button onClick={handleDelete} style={{ ...styles.btn("#fef2f2"), color: "#ef4444", fontSize: 13 }}>✕ {t.delete}</button>
+            )}
+          </div>
+        </div>
+
+        {/* Form grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 20px" }}>
+          <div style={{ ...fg, gridColumn: "1 / -1" }}>
+            <label style={lbl}>Teklif / Proje Adı *</label>
+            <input style={inp} value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Teklif adını girin" />
+          </div>
+          <div style={fg}>
+            <label style={lbl}>Müşteri *</label>
+            <select style={inp} value={form.customerId} onChange={e => upd("customerId", e.target.value)}>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div style={fg}>
+            <label style={lbl}>{t.contactCol}</label>
+            <input style={inp} value={form.contact} onChange={e => upd("contact", e.target.value)} placeholder="İlgili kişi" />
+          </div>
+          <div style={fg}>
+            <label style={lbl}>{t.amountCol}</label>
+            <input style={inp} type="number" value={form.amount} onChange={e => upd("amount", e.target.value)} placeholder="0" />
+          </div>
+          <div style={fg}>
+            <label style={lbl}>Para Birimi</label>
+            <select style={inp} value={form.currency} onChange={e => upd("currency", e.target.value)}>
+              <option value="TRY">₺ TRY</option>
+              <option value="EUR">€ EUR</option>
+              <option value="USD">$ USD</option>
+            </select>
+          </div>
+          <div style={fg}>
+            <label style={lbl}>{t.statusCol}</label>
+            <select style={inp} value={form.status} onChange={e => upd("status", e.target.value)}>
+              {Object.keys(STATUSES).map(s => <option key={s} value={s}>{t[s] || s}</option>)}
+            </select>
+          </div>
+          <div style={fg}>
+            <label style={lbl}>{t.priorityCol}</label>
+            <select style={inp} value={form.priority} onChange={e => upd("priority", e.target.value)}>
+              <option value="Yüksek">{t.high}</option>
+              <option value="Orta">{t.medium}</option>
+              <option value="Düşük">{t.low}</option>
+            </select>
+          </div>
+          <div style={fg}>
+            <label style={lbl}>{t.dateCol}</label>
+            <input style={inp} type="date" value={form.date} onChange={e => upd("date", e.target.value)} />
+          </div>
+          <div style={fg}>
+            <label style={lbl}>Olasılık (%)</label>
+            <input style={inp} type="number" min="0" max="100" value={form.probability} onChange={e => upd("probability", e.target.value)} />
+          </div>
+        </div>
+
+        {/* Olasılık bar */}
+        <div style={{ margin: "4px 0 20px" }}>
+          <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ width: `${form.probability}%`, height: "100%", borderRadius: 3, background: form.probability >= 80 ? "#22c55e" : form.probability >= 50 ? "#f59e0b" : "#ef4444", transition: "width .3s" }} />
+          </div>
+        </div>
+
+        {/* Aksiyon */}
+        <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20, marginBottom: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12 }}>Sonraki Aksiyon</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: "0 16px" }}>
+            <div style={fg}>
+              <label style={lbl}>Aksiyon Notu</label>
+              <input style={inp} value={form.action_text} onChange={e => upd("action_text", e.target.value)} placeholder="Yapılacak işlem..." />
+            </div>
+            <div style={fg}>
+              <label style={lbl}>Aksiyon Tarihi</label>
+              <input style={inp} type="date" value={form.action_date} onChange={e => upd("action_date", e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
+          <button onClick={handleSave} disabled={saving} style={styles.btn("#3b82f6")}>{saving ? "Kaydediliyor..." : t.save}</button>
+          <button onClick={() => setPage(prevPage || "projects")} style={{ ...styles.btn("#e5e7eb"), color: "#64748b" }}>{t.cancel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── TEKLİFLER TAB ───
-function TekliflerTab({ custProjects, customers, t, customer, sectionTitle }) {
+function TekliflerTab({ custProjects, customers, t, customer, sectionTitle, onProjectClick, onNewProject }) {
   const [projects, setProjects] = useState(custProjects);
-  const [editModal, setEditModal] = useState(null);
   const [saving, setSaving] = useState(false);
 
   // Sync when custProjects changes
@@ -618,31 +783,16 @@ function TekliflerTab({ custProjects, customers, t, customer, sectionTitle }) {
     setProjects(prev => prev.filter(x => x.id !== p.id));
   };
 
-  const handleEdit = (p) => {
-    setEditModal({ ...p, amountStr: String(p.amount) });
-  };
-
-  const handleSaveEdit = async () => {
-    if (!editModal) return;
-    setSaving(true);
-    const payload = {
-      name: editModal.name, contact_person: editModal.contact, amount: Number(editModal.amountStr),
-      currency: editModal.currency, project_date: editModal.date, status: editModal.status,
-      priority: editModal.priority, probability: editModal.probability,
-    };
-    await sb.update("projects", editModal.id, payload).catch(console.error);
-    setProjects(prev => prev.map(x => x.id === editModal.id ? { ...x, ...editModal, amount: Number(editModal.amountStr) } : x));
-    setEditModal(null);
-    setSaving(false);
-  };
-
   const inputSt = { width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 13, outline: "none", background: "#f9fafb" };
   const labelSt = { fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4, display: "block" };
   const fieldGr = { marginBottom: 12 };
 
   return (
     <div>
-      {sectionTitle(t.salesDocs)}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", paddingBottom: 6, borderBottom: "1px solid #eff6ff", flex: 1 }}>{t.salesDocs}</div>
+        <button onClick={onNewProject} style={{ ...styles.btn("#3b82f6"), fontSize: 12, padding: "6px 14px", marginLeft: 12 }}>+ Yeni Teklif</button>
+      </div>
       {projects.length === 0 ? (
         <div style={{ color: "#94a3b8", textAlign: "center", padding: 24, fontSize: 14 }}>{t.noSalesDocs}</div>
       ) : (
@@ -654,73 +804,20 @@ function TekliflerTab({ custProjects, customers, t, customer, sectionTitle }) {
             const s = STATUSES[p.status];
             return (
               <div key={p.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 110px 110px 90px 80px", gap: 0, padding: "10px 16px", fontSize: 13, borderBottom: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc", alignItems: "center" }}>
-                <span style={{ fontWeight: 600, color: "#3b82f6" }}>TKF-{String(p.id).slice(-4).padStart(4, "0")}</span>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 8 }}>{p.name}</span>
+                <span onClick={() => onProjectClick && onProjectClick(p)} style={{ fontWeight: 600, color: "#3b82f6", cursor: "pointer", textDecoration: "underline" }}>TKF-{String(p.id).slice(-4).padStart(4, "0")}</span>
+                <span onClick={() => onProjectClick && onProjectClick(p)} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 8, cursor: "pointer", fontWeight: 500 }}>{p.name}</span>
                 <span>
                   <span style={{ display: "inline-block", padding: "3px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: s?.bg, color: s?.color, border: `1px solid ${s?.border}` }}>{t[p.status] || p.status}</span>
                 </span>
                 <span style={{ color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR")}</span>
                 <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</span>
                 <span style={{ display: "flex", gap: 6 }}>
-                  <button onClick={() => handleEdit(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#3b82f6", padding: "2px 4px" }} title={t.edit}>✎</button>
+                  <button onClick={() => onProjectClick && onProjectClick(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#3b82f6", padding: "2px 4px" }} title={t.edit}>✎</button>
                   <button onClick={() => handleDelete(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#fca5a5", padding: "2px 4px" }} title={t.delete}>✕</button>
                 </span>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {editModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 520, boxShadow: "0 20px 60px rgba(0,0,0,.2)" }}>
-            <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 800 }}>Teklif Düzenle</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
-              <div style={{ ...fieldGr, gridColumn: "1 / -1" }}>
-                <label style={labelSt}>Proje / Teklif Adı</label>
-                <input style={inputSt} value={editModal.name} onChange={e => setEditModal(p => ({ ...p, name: e.target.value }))} />
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Tutar</label>
-                <input style={inputSt} type="number" value={editModal.amountStr} onChange={e => setEditModal(p => ({ ...p, amountStr: e.target.value }))} />
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Para Birimi</label>
-                <select style={inputSt} value={editModal.currency} onChange={e => setEditModal(p => ({ ...p, currency: e.target.value }))}>
-                  <option value="TRY">₺ TRY</option><option value="EUR">€ EUR</option><option value="USD">$ USD</option>
-                </select>
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Durum</label>
-                <select style={inputSt} value={editModal.status} onChange={e => setEditModal(p => ({ ...p, status: e.target.value }))}>
-                  {Object.keys(STATUSES).map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Öncelik</label>
-                <select style={inputSt} value={editModal.priority} onChange={e => setEditModal(p => ({ ...p, priority: e.target.value }))}>
-                  <option value="Yüksek">Yüksek</option><option value="Orta">Orta</option><option value="Düşük">Düşük</option>
-                </select>
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Tarih</label>
-                <input style={inputSt} type="date" value={editModal.date} onChange={e => setEditModal(p => ({ ...p, date: e.target.value }))} />
-              </div>
-              <div style={fieldGr}>
-                <label style={labelSt}>Olasılık (%)</label>
-                <input style={inputSt} type="number" min="0" max="100" value={editModal.probability} onChange={e => setEditModal(p => ({ ...p, probability: Number(e.target.value) }))} />
-              </div>
-              <div style={{ ...fieldGr, gridColumn: "1 / -1" }}>
-                <label style={labelSt}>Birincil Kontak</label>
-                <input style={inputSt} value={editModal.contact || ""} onChange={e => setEditModal(p => ({ ...p, contact: e.target.value }))} />
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
-              <button onClick={handleSaveEdit} disabled={saving} style={{ ...styles.btn("#3b82f6"), fontSize: 13 }}>{saving ? "Kaydediliyor..." : t.save}</button>
-              <button onClick={() => setEditModal(null)} style={{ ...styles.btn("#e5e7eb"), color: "#64748b", fontSize: 13 }}>{t.cancel}</button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -738,7 +835,7 @@ function TekliflerTab({ custProjects, customers, t, customer, sectionTitle }) {
 }
 
 // ─── CUSTOMER DETAIL (SAP BP FORM — 5 TABS) ───
-function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
+function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onProjectClick, onNewProject }) {
   const [tab, setTab] = useState(0);
   const [form, setForm] = useState({
     name: customer.name || "", name1: customer.name1 || "", name2: customer.name2 || "",
@@ -1070,6 +1167,8 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
             t={t}
             customer={customer}
             sectionTitle={sectionTitle}
+            onProjectClick={onProjectClick}
+            onNewProject={onNewProject}
           />
         )}
 
@@ -1090,6 +1189,8 @@ export default function FiksCRM() {
   const [projects, setProjects] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [projectPrevPage, setProjectPrevPage] = useState("projects");
   const [statusFilter, setStatusFilter] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -1124,6 +1225,35 @@ export default function FiksCRM() {
     if (prob !== undefined) update.probability = prob;
     await sb.update("projects", projectId, update);
     setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: newStatus, probability: prob ?? p.probability } : p));
+  };
+
+  // Navigate to project detail
+  const openProjectDetail = (project, fromPage) => {
+    setSelectedProject(project);
+    setProjectPrevPage(fromPage || "projects");
+    setPage("projectDetail");
+  };
+
+  // Save project (new or update)
+  const handleSaveProject = (savedRaw, isNew) => {
+    const custs = customers;
+    if (isNew) {
+      const mapped = mapProject(savedRaw, custs);
+      setProjects(prev => [mapped, ...prev]);
+    } else {
+      setProjects(prev => prev.map(p => p.id === savedRaw.id ? {
+        ...p,
+        name: savedRaw.name, contact: savedRaw.contact, amount: Number(savedRaw.amount),
+        currency: savedRaw.currency, date: savedRaw.date, status: savedRaw.status,
+        priority: savedRaw.priority, probability: Number(savedRaw.probability),
+        action: savedRaw.action_text ? { text: savedRaw.action_text, date: savedRaw.action_date } : null,
+      } : p));
+    }
+  };
+
+  // Delete project
+  const handleDeleteProject = (projectId) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId));
   };
 
   // Save customer
@@ -1164,6 +1294,7 @@ export default function FiksCRM() {
   };
 
   const pageTitle = page === "customerDetail" ? (selectedCustomer?.name || t.customers)
+    : page === "projectDetail" ? (selectedProject?.name || "Yeni Teklif")
     : navItems.find(n => n.key === page)?.label || t.dashboard;
 
   if (loading) return (
@@ -1220,7 +1351,7 @@ export default function FiksCRM() {
               <option value="en">🇬🇧 EN</option>
               <option value="ar">🇸🇦 AR</option>
             </select>
-            {page === "projects" && <button style={styles.btn("#3b82f6")}>{t.newProject}</button>}
+            {page === "projects" && <button onClick={() => openProjectDetail(null, "projects")} style={styles.btn("#3b82f6")}>{t.newProject}</button>}
             {page === "customers" && (
               <button onClick={() => { setSelectedCustomer({ isNew: true, name: "", logo_code: "", color: "#3b82f6", customer_type: "corporate", customer_role: "potential", status: "active" }); setPage("customerDetail"); }} style={styles.btn("#3b82f6")}>{t.newCustomer}</button>
             )}
@@ -1230,9 +1361,10 @@ export default function FiksCRM() {
         <div style={styles.content}>
           {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
           {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} />}
-          {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} />}
-          {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} onProjectClick={(p) => { const cust = customers.find(c => c.id === p.customerId); if (cust) { setSelectedCustomer(cust); setPage("customerDetail"); } }} />}
-          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} />}
+          {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} onProjectClick={(p) => openProjectDetail(p, "projects")} />}
+          {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} onProjectClick={(p) => openProjectDetail(p, "pipeline")} />}
+          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} onProjectClick={(p) => openProjectDetail(p, "customerDetail")} onNewProject={() => openProjectDetail({ customerId: selectedCustomer.id }, "customerDetail")} />}
+          {page === "projectDetail" && <ProjectDetail project={selectedProject} customers={customers} t={t} setPage={setPage} prevPage={projectPrevPage} onSave={handleSaveProject} onDelete={handleDeleteProject} />}
         </div>
       </main>
     </div>
