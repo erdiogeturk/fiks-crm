@@ -606,7 +606,6 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
 // ─── PROJE / TEKLİF DETAY SAYFASI ───
 function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDelete }) {
   const isNew = !project?.id;
-  const customer = customers.find(c => c.id === project?.customerId) || null;
 
   const [form, setForm] = useState({
     name: project?.name || "",
@@ -770,9 +769,8 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
 }
 
 // ─── TEKLİFLER TAB ───
-function TekliflerTab({ custProjects, customers, t, customer, sectionTitle, onProjectClick, onNewProject }) {
+function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick, onNewProject }) {
   const [projects, setProjects] = useState(custProjects);
-  const [saving, setSaving] = useState(false);
 
   // Sync when custProjects changes
   useState(() => { setProjects(custProjects); }, [custProjects]);
@@ -782,10 +780,6 @@ function TekliflerTab({ custProjects, customers, t, customer, sectionTitle, onPr
     await sb.remove("projects", p.id).catch(console.error);
     setProjects(prev => prev.filter(x => x.id !== p.id));
   };
-
-  const inputSt = { width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 13, outline: "none", background: "#f9fafb" };
-  const labelSt = { fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4, display: "block" };
-  const fieldGr = { marginBottom: 12 };
 
   return (
     <div>
