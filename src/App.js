@@ -81,13 +81,10 @@ const TRANSLATIONS = {
     save: "Kaydet", cancel: "İptal", edit: "Düzenle", delete: "Sil", addContact: "Kişi Ekle",
     back: "Geri", high: "Yüksek", medium: "Orta", low: "Düşük",
     noActivities: "Henüz aktivite yok", noSalesDocs: "Henüz satış belgesi yok",
-    // ProjectDetail
     newProposal: "Yeni Teklif", proposalName: "Teklif / Proje Adı", proposalNamePlaceholder: "Teklif adını girin",
-    customer: "Müşteri", currency: "Para Birimi", probability: "Olasılık (%)",
+    customerLabel: "Müşteri", currency: "Para Birimi", probability: "Olasılık (%)",
     nextAction: "Sonraki Aksiyon", actionNote: "Aksiyon Notu", actionNotePlaceholder: "Yapılacak işlem...", actionDate: "Aksiyon Tarihi",
-    // Priority labels
     Yüksek: "Yüksek", Orta: "Orta", Düşük: "Düşük",
-    // Pipeline new proposal
     newTeklif: "+ Yeni Teklif",
   },
   en: {
@@ -124,13 +121,10 @@ const TRANSLATIONS = {
     save: "Save", cancel: "Cancel", edit: "Edit", delete: "Delete", addContact: "Add Contact",
     back: "Back", high: "High", medium: "Medium", low: "Low",
     noActivities: "No activities yet", noSalesDocs: "No sales documents yet",
-    // ProjectDetail
     newProposal: "New Proposal", proposalName: "Proposal / Project Name", proposalNamePlaceholder: "Enter proposal name",
-    customer: "Customer", currency: "Currency", probability: "Probability (%)",
+    customerLabel: "Customer", currency: "Currency", probability: "Probability (%)",
     nextAction: "Next Action", actionNote: "Action Note", actionNotePlaceholder: "Next step...", actionDate: "Action Date",
-    // Priority labels
     Yüksek: "High", Orta: "Medium", Düşük: "Low",
-    // Pipeline new proposal
     newTeklif: "+ New Proposal",
   },
   ar: {
@@ -167,13 +161,10 @@ const TRANSLATIONS = {
     save: "حفظ", cancel: "إلغاء", edit: "تعديل", delete: "حذف", addContact: "إضافة جهة اتصال",
     back: "رجوع", high: "عالي", medium: "متوسط", low: "منخفض",
     noActivities: "لا توجد أنشطة بعد", noSalesDocs: "لا توجد مستندات بعد",
-    // ProjectDetail
     newProposal: "عرض جديد", proposalName: "اسم العرض / المشروع", proposalNamePlaceholder: "أدخل اسم العرض",
-    customer: "العميل", currency: "العملة", probability: "الاحتمالية (%)",
+    customerLabel: "العميل", currency: "العملة", probability: "الاحتمالية (%)",
     nextAction: "الإجراء التالي", actionNote: "ملاحظة الإجراء", actionNotePlaceholder: "الخطوة التالية...", actionDate: "تاريخ الإجراء",
-    // Priority labels
     Yüksek: "عالي", Orta: "متوسط", Düşük: "منخفض",
-    // Pipeline new proposal
     newTeklif: "+ عرض جديد",
   },
 };
@@ -649,7 +640,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSave = async () => {
-    if (!form.name.trim()) { alert(t.proposalName + " " + t.save); return; }
+    if (!form.name.trim()) { alert("Teklif adı zorunlu"); return; }
     setSaving(true);
     const payload = {
       name: form.name, customer_id: form.customerId, contact_person: form.contact,
@@ -672,7 +663,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`"${form.name}" ${t.delete}?`)) return;
+    if (!window.confirm(`"${form.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
     await sb.remove("projects", project.id).catch(console.error);
     if (onDelete) onDelete(project.id);
     setPage(prevPage || "projects");
@@ -715,7 +706,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
             <input style={inp} value={form.name} onChange={e => upd("name", e.target.value)} placeholder={t.proposalNamePlaceholder} />
           </div>
           <div style={fg}>
-            <label style={lbl}>{t.customer} *</label>
+            <label style={lbl}>{t.customerLabel} *</label>
             <select style={inp} value={form.customerId} onChange={e => upd("customerId", e.target.value)}>
               {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
@@ -760,14 +751,14 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
           </div>
         </div>
 
-        {/* Olasılık bar */}
+        {/* Probability bar */}
         <div style={{ margin: "4px 0 20px" }}>
           <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
             <div style={{ width: `${form.probability}%`, height: "100%", borderRadius: 3, background: form.probability >= 80 ? "#22c55e" : form.probability >= 50 ? "#f59e0b" : "#ef4444", transition: "width .3s" }} />
           </div>
         </div>
 
-        {/* Aksiyon */}
+        {/* Next Action */}
         <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20, marginBottom: 8 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12 }}>{t.nextAction}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: "0 16px" }}>
@@ -800,7 +791,7 @@ function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick
   useState(() => { setProjects(custProjects); }, [custProjects]);
 
   const handleDelete = async (p) => {
-    if (!window.confirm(`"${p.name}" ${t.delete}?`)) return;
+    if (!window.confirm(`"${p.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
     await sb.remove("projects", p.id).catch(console.error);
     setProjects(prev => prev.filter(x => x.id !== p.id));
   };
