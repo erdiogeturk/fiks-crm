@@ -53,7 +53,7 @@ const TRANSLATIONS = {
     Lead: "Lead", Teklif: "Teklif", Müzakere: "Müzakere", Kazanıldı: "Kazanıldı", Kaybedildi: "Kaybedildi", Beklemede: "Beklemede",
     // 5 tabs
     headerInfo: "Başlık Bilgileri", addressDetail: "Adres Detay", contactDetail: "Kişi Detay",
-    activities: "Aktiviteler", salesDocs: "Satış Belgeleri",
+    activities: "Aktiviteler", salesDocs: "Teklifler",
     // Başlık Bilgileri fields
     custNumber: "Müşteri Numarası", custExtNumber: "Müşteri Harici Numarası",
     custRole: "Müşteri Rolü", custRolePotential: "Potansiyel Müşteri", custRoleReal: "Gerçek Müşteri",
@@ -94,7 +94,7 @@ const TRANSLATIONS = {
     dateCol: "DATE", statusCol: "STATUS", priorityCol: "PRIORITY", actionCol: "ACTION",
     Lead: "Lead", Teklif: "Proposal", Müzakere: "Negotiation", Kazanıldı: "Won", Kaybedildi: "Lost", Beklemede: "On Hold",
     headerInfo: "Header Info", addressDetail: "Address Detail", contactDetail: "Contact Detail",
-    activities: "Activities", salesDocs: "Sales Documents",
+    activities: "Activities", salesDocs: "Proposals",
     custNumber: "Customer Number", custExtNumber: "External Number",
     custRole: "Customer Role", custRolePotential: "Potential Customer", custRoleReal: "Actual Customer",
     name1: "Name", name2: "Name 1", name3: "Name 2", name4: "Name 3", name5: "Name 4",
@@ -129,7 +129,7 @@ const TRANSLATIONS = {
     dateCol: "التاريخ", statusCol: "الحالة", priorityCol: "الأولوية", actionCol: "الإجراء",
     Lead: "محتمل", Teklif: "عرض", Müzakere: "تفاوض", Kazanıldı: "فاز", Kaybedildi: "خسر", Beklemede: "معلق",
     headerInfo: "معلومات الرأس", addressDetail: "تفاصيل العنوان", contactDetail: "تفاصيل الاتصال",
-    activities: "الأنشطة", salesDocs: "مستندات المبيعات",
+    activities: "الأنشطة", salesDocs: "العروض",
     custNumber: "رقم العميل", custExtNumber: "الرقم الخارجي",
     custRole: "دور العميل", custRolePotential: "عميل محتمل", custRoleReal: "عميل فعلي",
     name1: "الاسم", name2: "الاسم 1", name3: "الاسم 2", name4: "الاسم 3", name5: "الاسم 4",
@@ -306,10 +306,10 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
   };
 
   const kpiCards = [
-    { label: t.total, value: totalProjects, sub: t.project, color: "#3b82f6", icon: "📊", onClick: () => setPage("projects") },
-    { label: t.customer, value: uniqueCustomers, sub: t.registered, color: "#8b5cf6", icon: "👥", onClick: () => setPage("customers") },
+    { label: t.total, value: totalProjects, sub: t.project, color: "#3b82f6", icon: "📊", onClick: () => { setStatusFilter(null); setPage("projects"); } },
+    { label: t.customer, value: uniqueCustomers, sub: t.registered, color: "#8b5cf6", icon: "👥", onClick: () => { setStatusFilter(null); setPage("customers"); } },
     { label: t.won, value: formatFullTRY(wonAmount), sub: `${wonProjects.length} ${t.wonProjects}`, color: "#22c55e", icon: "🏆", onClick: () => handleStatusClick("Kazanıldı") },
-    { label: t.winRate, value: `%${winRate}`, sub: t.wonClosed, color: "#f59e0b", icon: "📈", onClick: () => setPage("projects") },
+    { label: t.winRate, value: `%${winRate}`, sub: t.wonClosed, color: "#f59e0b", icon: "📈", onClick: () => { setStatusFilter(null); setPage("projects"); } },
   ];
 
   return (
@@ -472,7 +472,7 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer })
 }
 
 // ─── PIPELINE (KANBAN) ───
-function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusChange }) {
+function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusChange, onProjectClick }) {
   const [dragItem, setDragItem] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const scrollRefs = useRef({});
@@ -483,6 +483,9 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
   const handleDragStart = (e, projectId) => {
     setDragItem(projectId);
     e.dataTransfer.effectAllowed = "move";
+    // Mark event so click handler won't fire after drag
+    e.currentTarget._wasDragged = true;
+    setTimeout(() => { if (e.currentTarget) e.currentTarget._wasDragged = false; }, 300);
   };
   const handleDragOver = (e, status) => { e.preventDefault(); setDragOver(status); };
   const handleDrop = (e, newStatus) => {
@@ -528,10 +531,11 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
                 return (
                   <div key={p.id} draggable
                     onDragStart={e => handleDragStart(e, p.id)}
+                    onClick={(e) => { if (e.currentTarget._wasDragged || dragItem) return; if (onProjectClick) onProjectClick(p); }}
                     style={{
                       background: "#fff", borderRadius: 12, padding: 14, marginBottom: 10,
                       boxShadow: dragItem === p.id ? "0 8px 24px rgba(0,0,0,.15)" : "0 1px 3px rgba(0,0,0,.06)",
-                      cursor: "grab", transition: "box-shadow .2s, transform .15s",
+                      cursor: "pointer", transition: "box-shadow .2s, transform .15s",
                       opacity: dragItem === p.id ? .6 : 1,
                       border: "1px solid #f1f5f9",
                     }}
@@ -599,6 +603,140 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
   );
 }
 
+// ─── TEKLİFLER TAB ───
+function TekliflerTab({ custProjects, customers, t, customer, sectionTitle }) {
+  const [projects, setProjects] = useState(custProjects);
+  const [editModal, setEditModal] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  // Sync when custProjects changes
+  useState(() => { setProjects(custProjects); }, [custProjects]);
+
+  const handleDelete = async (p) => {
+    if (!window.confirm(`"${p.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    await sb.remove("projects", p.id).catch(console.error);
+    setProjects(prev => prev.filter(x => x.id !== p.id));
+  };
+
+  const handleEdit = (p) => {
+    setEditModal({ ...p, amountStr: String(p.amount) });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editModal) return;
+    setSaving(true);
+    const payload = {
+      name: editModal.name, contact_person: editModal.contact, amount: Number(editModal.amountStr),
+      currency: editModal.currency, project_date: editModal.date, status: editModal.status,
+      priority: editModal.priority, probability: editModal.probability,
+    };
+    await sb.update("projects", editModal.id, payload).catch(console.error);
+    setProjects(prev => prev.map(x => x.id === editModal.id ? { ...x, ...editModal, amount: Number(editModal.amountStr) } : x));
+    setEditModal(null);
+    setSaving(false);
+  };
+
+  const inputSt = { width: "100%", padding: "8px 10px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 13, outline: "none", background: "#f9fafb" };
+  const labelSt = { fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4, display: "block" };
+  const fieldGr = { marginBottom: 12 };
+
+  return (
+    <div>
+      {sectionTitle(t.salesDocs)}
+      {projects.length === 0 ? (
+        <div style={{ color: "#94a3b8", textAlign: "center", padding: 24, fontSize: 14 }}>{t.noSalesDocs}</div>
+      ) : (
+        <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #f1f5f9", marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "90px 1fr 110px 110px 90px 80px", gap: 0, padding: "10px 16px", background: "#f8fafc", fontWeight: 700, fontSize: 11, color: "#94a3b8", letterSpacing: .5 }}>
+            <span>{t.docNumber}</span><span>{t.projectCol}</span><span>{t.statusCol}</span><span>{t.docDate}</span><span>{t.docAmount}</span><span>{t.actionCol}</span>
+          </div>
+          {projects.map((p, i) => {
+            const s = STATUSES[p.status];
+            return (
+              <div key={p.id} style={{ display: "grid", gridTemplateColumns: "90px 1fr 110px 110px 90px 80px", gap: 0, padding: "10px 16px", fontSize: 13, borderBottom: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc", alignItems: "center" }}>
+                <span style={{ fontWeight: 600, color: "#3b82f6" }}>TKF-{String(p.id).slice(-4).padStart(4, "0")}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 8 }}>{p.name}</span>
+                <span>
+                  <span style={{ display: "inline-block", padding: "3px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: s?.bg, color: s?.color, border: `1px solid ${s?.border}` }}>{t[p.status] || p.status}</span>
+                </span>
+                <span style={{ color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR")}</span>
+                <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</span>
+                <span style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => handleEdit(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#3b82f6", padding: "2px 4px" }} title={t.edit}>✎</button>
+                  <button onClick={() => handleDelete(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#fca5a5", padding: "2px 4px" }} title={t.delete}>✕</button>
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.4)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 28, width: "100%", maxWidth: 520, boxShadow: "0 20px 60px rgba(0,0,0,.2)" }}>
+            <h3 style={{ margin: "0 0 20px", fontSize: 16, fontWeight: 800 }}>Teklif Düzenle</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <div style={{ ...fieldGr, gridColumn: "1 / -1" }}>
+                <label style={labelSt}>Proje / Teklif Adı</label>
+                <input style={inputSt} value={editModal.name} onChange={e => setEditModal(p => ({ ...p, name: e.target.value }))} />
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Tutar</label>
+                <input style={inputSt} type="number" value={editModal.amountStr} onChange={e => setEditModal(p => ({ ...p, amountStr: e.target.value }))} />
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Para Birimi</label>
+                <select style={inputSt} value={editModal.currency} onChange={e => setEditModal(p => ({ ...p, currency: e.target.value }))}>
+                  <option value="TRY">₺ TRY</option><option value="EUR">€ EUR</option><option value="USD">$ USD</option>
+                </select>
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Durum</label>
+                <select style={inputSt} value={editModal.status} onChange={e => setEditModal(p => ({ ...p, status: e.target.value }))}>
+                  {Object.keys(STATUSES).map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Öncelik</label>
+                <select style={inputSt} value={editModal.priority} onChange={e => setEditModal(p => ({ ...p, priority: e.target.value }))}>
+                  <option value="Yüksek">Yüksek</option><option value="Orta">Orta</option><option value="Düşük">Düşük</option>
+                </select>
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Tarih</label>
+                <input style={inputSt} type="date" value={editModal.date} onChange={e => setEditModal(p => ({ ...p, date: e.target.value }))} />
+              </div>
+              <div style={fieldGr}>
+                <label style={labelSt}>Olasılık (%)</label>
+                <input style={inputSt} type="number" min="0" max="100" value={editModal.probability} onChange={e => setEditModal(p => ({ ...p, probability: Number(e.target.value) }))} />
+              </div>
+              <div style={{ ...fieldGr, gridColumn: "1 / -1" }}>
+                <label style={labelSt}>Birincil Kontak</label>
+                <input style={inputSt} value={editModal.contact || ""} onChange={e => setEditModal(p => ({ ...p, contact: e.target.value }))} />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
+              <button onClick={handleSaveEdit} disabled={saving} style={{ ...styles.btn("#3b82f6"), fontSize: 13 }}>{saving ? "Kaydediliyor..." : t.save}</button>
+              <button onClick={() => setEditModal(null)} style={{ ...styles.btn("#e5e7eb"), color: "#64748b", fontSize: 13 }}>{t.cancel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {sectionTitle(t.changeHistory)}
+      <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #f1f5f9" }}>
+        <div style={{ padding: "12px 16px", fontSize: 13, color: "#64748b", background: "#f8fafc" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span>{new Date().toLocaleDateString("tr-TR")} — {t.createdBy}: Erdi Ögetürk</span>
+            <span style={{ fontSize: 11, color: "#94a3b8" }}>Kayıt oluşturuldu</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── CUSTOMER DETAIL (SAP BP FORM — 5 TABS) ───
 function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
   const [tab, setTab] = useState(0);
@@ -613,9 +751,20 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
   });
   const [contacts, setContacts] = useState([{ id: 1, firstName: "", lastName: "", position: "", phone: "", email: "" }]);
   const [activities, setActivities] = useState([]);
+  const [activitiesLoaded, setActivitiesLoaded] = useState(false);
   const [newActivity, setNewActivity] = useState({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
+  const [editingActivity, setEditingActivity] = useState(null);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState(customer.logo_url || null);
+  const [addressForm, setAddressForm] = useState({
+    address: customer.address || "", country: customer.country || "Türkiye",
+    city: customer.city || "", district: customer.district || "",
+    neighborhood: customer.neighborhood || "", quarter: customer.quarter || "",
+    postal_code: customer.postal_code || "", phone: customer.phone || "",
+    mobile: customer.mobile || "", email: customer.email || "",
+    invoice_address: customer.invoice_address || "", shipping_address: customer.shipping_address || "",
+  });
+  const [contactsLoaded, setContactsLoaded] = useState(false);
   const logoInputRef = useRef(null);
   const tabs = [t.headerInfo, t.addressDetail, t.contactDetail, t.activities, t.salesDocs];
   const custProjects = projects.filter(p => p.customerId === customer.id);
@@ -632,13 +781,62 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
     <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12, marginTop: 8, paddingBottom: 6, borderBottom: "1px solid #eff6ff" }}>{text}</div>
   );
 
-  const addContact = () => setContacts(prev => [...prev, { id: Date.now(), firstName: "", lastName: "", position: "", phone: "", email: "" }]);
-  const removeContact = (id) => setContacts(prev => prev.filter(c => c.id !== id));
+  const addContact = () => setContacts(prev => [...prev, { id: Date.now(), firstName: "", lastName: "", position: "", phone: "", email: "", isNew: true }]);
+  const removeContact = async (id) => {
+    const c = contacts.find(x => x.id === id);
+    if (c && c.db_id) await sb.remove("customer_contacts", c.db_id);
+    setContacts(prev => prev.filter(x => x.id !== id));
+  };
+  const updateContact = (id, key, val) => setContacts(prev => prev.map(c => c.id === id ? { ...c, [key]: val, isDirty: true } : c));
 
-  const addActivityEntry = () => {
+  // Load contacts from Supabase when tab 2 is opened
+  const loadContacts = async () => {
+    if (contactsLoaded || customer.isNew) return;
+    try {
+      const data = await sb.query("customer_contacts", { eq: { customer_id: customer.id } });
+      if (Array.isArray(data) && data.length > 0) {
+        setContacts(data.map(r => ({ id: r.id, db_id: r.id, firstName: r.first_name || "", lastName: r.last_name || "", position: r.position || "", phone: r.phone || "", email: r.email || "" })));
+      }
+    } catch (e) { console.error(e); }
+    setContactsLoaded(true);
+  };
+
+  // Load activities from Supabase when tab 3 is opened
+  const loadActivities = async () => {
+    if (activitiesLoaded || customer.isNew) return;
+    try {
+      const data = await sb.query("customer_activities", { eq: { customer_id: customer.id }, order: "activity_date.desc" });
+      if (Array.isArray(data) && data.length > 0) {
+        setActivities(data.map(r => ({ id: r.id, db_id: r.id, type: r.activity_type || "actMeeting", note: r.note || "", date: r.activity_date || "" })));
+      }
+    } catch (e) { console.error(e); }
+    setActivitiesLoaded(true);
+  };
+
+  const addActivityEntry = async () => {
     if (!newActivity.note.trim()) return;
-    setActivities(prev => [{ id: Date.now(), ...newActivity }, ...prev]);
+    const entry = { id: Date.now(), ...newActivity };
+    setActivities(prev => [entry, ...prev]);
     setNewActivity({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
+    if (!customer.isNew) {
+      try {
+        const result = await sb.insert("customer_activities", { customer_id: customer.id, activity_type: entry.type, note: entry.note, activity_date: entry.date });
+        if (result?.[0]) setActivities(prev => prev.map(a => a.id === entry.id ? { ...a, db_id: result[0].id } : a));
+      } catch (e) { console.error(e); }
+    }
+  };
+
+  const deleteActivity = async (act) => {
+    setActivities(prev => prev.filter(a => a.id !== act.id));
+    if (act.db_id) await sb.remove("customer_activities", act.db_id).catch(console.error);
+  };
+
+  const saveActivityEdit = async (act) => {
+    setActivities(prev => prev.map(a => a.id === act.id ? act : a));
+    setEditingActivity(null);
+    if (act.db_id) {
+      await sb.update("customer_activities", act.db_id, { activity_type: act.type, note: act.note, activity_date: act.date }).catch(console.error);
+    }
   };
 
   const handleLogoUpload = async (e) => {
@@ -662,7 +860,29 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
     if (!form.name.trim()) { alert("Müşteri adı zorunlu"); return; }
     setSaving(true);
     try {
-      await onSave({ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() });
+      const savedCustomer = await onSave({ ...customer, ...form, logo_code: form.logo_code || form.name.substring(0, 2).toUpperCase() });
+      const custId = savedCustomer?.id || customer.id;
+
+      // Save address
+      if (custId && !customer.isNew) {
+        await sb.update("customers", custId, {
+          address: addressForm.address, country: addressForm.country, city: addressForm.city,
+          district: addressForm.district, neighborhood: addressForm.neighborhood, quarter: addressForm.quarter,
+          postal_code: addressForm.postal_code, phone: addressForm.phone, mobile: addressForm.mobile,
+          email: addressForm.email, invoice_address: addressForm.invoice_address, shipping_address: addressForm.shipping_address,
+        }).catch(console.error);
+      }
+
+      // Save dirty contacts
+      if (custId && !customer.isNew) {
+        for (const c of contacts) {
+          if (!c.firstName && !c.lastName) continue;
+          const payload = { customer_id: custId, first_name: c.firstName, last_name: c.lastName, position: c.position, phone: c.phone, email: c.email };
+          if (c.db_id) { await sb.update("customer_contacts", c.db_id, payload).catch(console.error); }
+          else { const r = await sb.insert("customer_contacts", payload).catch(console.error); if (r?.[0]) setContacts(prev => prev.map(x => x.id === c.id ? { ...x, db_id: r[0].id } : x)); }
+        }
+      }
+
       if (customer.isNew) setPage("customers");
     } catch (e) { console.error(e); }
     setSaving(false);
@@ -693,7 +913,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
 
         <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #f1f5f9", marginBottom: 20, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
           {tabs.map((tb, i) => (
-            <button key={i} onClick={() => setTab(i)} style={{
+            <button key={i} onClick={() => { setTab(i); if (i === 2) loadContacts(); if (i === 3) loadActivities(); }} style={{
               background: "none", border: "none", padding: "10px 16px", cursor: "pointer", whiteSpace: "nowrap",
               fontSize: 13, fontWeight: tab === i ? 700 : 400, color: tab === i ? "#3b82f6" : "#94a3b8",
               borderBottom: tab === i ? "2px solid #3b82f6" : "2px solid transparent", marginBottom: -2, transition: "all .15s",
@@ -738,18 +958,18 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
         {tab === 1 && (
           <div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 20px" }}>
-              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.address}</label><input style={inputStyle} placeholder="Açık adres" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.country}</label><input style={inputStyle} defaultValue="Türkiye" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.city}</label><input style={inputStyle} placeholder="İl" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.district}</label><input style={inputStyle} placeholder="İlçe" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.neighborhood}</label><input style={inputStyle} placeholder="Semt" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.quarter}</label><input style={inputStyle} placeholder="Mahalle" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.postalCode}</label><input style={inputStyle} placeholder="Posta Kodu" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.phone}</label><input style={inputStyle} placeholder="+90" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.mobile}</label><input style={inputStyle} placeholder="+90 5xx" /></div>
-              <div style={fieldGroup}><label style={labelStyle}>{t.email}</label><input style={inputStyle} placeholder="info@firma.com" type="email" /></div>
-              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.invoiceAddress}</label><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} placeholder="Fatura adresi" /></div>
-              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.shippingAddress}</label><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} placeholder="Sevk adresi" /></div>
+              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.address}</label><input style={inputStyle} value={addressForm.address} onChange={e => setAddressForm(p => ({ ...p, address: e.target.value }))} placeholder="Açık adres" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.country}</label><input style={inputStyle} value={addressForm.country} onChange={e => setAddressForm(p => ({ ...p, country: e.target.value }))} /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.city}</label><input style={inputStyle} value={addressForm.city} onChange={e => setAddressForm(p => ({ ...p, city: e.target.value }))} placeholder="İl" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.district}</label><input style={inputStyle} value={addressForm.district} onChange={e => setAddressForm(p => ({ ...p, district: e.target.value }))} placeholder="İlçe" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.neighborhood}</label><input style={inputStyle} value={addressForm.neighborhood} onChange={e => setAddressForm(p => ({ ...p, neighborhood: e.target.value }))} placeholder="Semt" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.quarter}</label><input style={inputStyle} value={addressForm.quarter} onChange={e => setAddressForm(p => ({ ...p, quarter: e.target.value }))} placeholder="Mahalle" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.postalCode}</label><input style={inputStyle} value={addressForm.postal_code} onChange={e => setAddressForm(p => ({ ...p, postal_code: e.target.value }))} placeholder="Posta Kodu" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.phone}</label><input style={inputStyle} value={addressForm.phone} onChange={e => setAddressForm(p => ({ ...p, phone: e.target.value }))} placeholder="+90" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.mobile}</label><input style={inputStyle} value={addressForm.mobile} onChange={e => setAddressForm(p => ({ ...p, mobile: e.target.value }))} placeholder="+90 5xx" /></div>
+              <div style={fieldGroup}><label style={labelStyle}>{t.email}</label><input style={inputStyle} value={addressForm.email} onChange={e => setAddressForm(p => ({ ...p, email: e.target.value }))} placeholder="info@firma.com" type="email" /></div>
+              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.invoiceAddress}</label><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={addressForm.invoice_address} onChange={e => setAddressForm(p => ({ ...p, invoice_address: e.target.value }))} placeholder="Fatura adresi" /></div>
+              <div style={{ ...fieldGroup, gridColumn: "1 / -1" }}><label style={labelStyle}>{t.shippingAddress}</label><textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={addressForm.shipping_address} onChange={e => setAddressForm(p => ({ ...p, shipping_address: e.target.value }))} placeholder="Sevk adresi" /></div>
             </div>
           </div>
         )}
@@ -764,11 +984,11 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
                   <button onClick={() => removeContact(c.id)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontSize: 18 }}>✕</button>
                 )}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0 16px" }}>
-                  <div style={fieldGroup}><label style={labelStyle}>{t.firstName}</label><input style={inputStyle} placeholder="Ad" /></div>
-                  <div style={fieldGroup}><label style={labelStyle}>{t.lastName}</label><input style={inputStyle} placeholder="Soyad" /></div>
-                  <div style={fieldGroup}><label style={labelStyle}>{t.position}</label><input style={inputStyle} placeholder="Pozisyon / Unvan" /></div>
-                  <div style={fieldGroup}><label style={labelStyle}>{t.phone}</label><input style={inputStyle} placeholder="+90" /></div>
-                  <div style={fieldGroup}><label style={labelStyle}>{t.email}</label><input style={inputStyle} placeholder="email@" type="email" /></div>
+                  <div style={fieldGroup}><label style={labelStyle}>{t.firstName}</label><input style={inputStyle} value={c.firstName} onChange={e => updateContact(c.id, "firstName", e.target.value)} placeholder="Ad" /></div>
+                  <div style={fieldGroup}><label style={labelStyle}>{t.lastName}</label><input style={inputStyle} value={c.lastName} onChange={e => updateContact(c.id, "lastName", e.target.value)} placeholder="Soyad" /></div>
+                  <div style={fieldGroup}><label style={labelStyle}>{t.position}</label><input style={inputStyle} value={c.position} onChange={e => updateContact(c.id, "position", e.target.value)} placeholder="Pozisyon / Unvan" /></div>
+                  <div style={fieldGroup}><label style={labelStyle}>{t.phone}</label><input style={inputStyle} value={c.phone} onChange={e => updateContact(c.id, "phone", e.target.value)} placeholder="+90" /></div>
+                  <div style={fieldGroup}><label style={labelStyle}>{t.email}</label><input style={inputStyle} value={c.email} onChange={e => updateContact(c.id, "email", e.target.value)} placeholder="email@" type="email" /></div>
                   <div style={fieldGroup}><label style={labelStyle}>{t.relatedCustomer}</label><input style={inputStyle} defaultValue={customer.name} readOnly /></div>
                 </div>
               </div>
@@ -807,12 +1027,33 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
               <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #f1f5f9" }}>
                 {activities.map((a, i) => {
                   const typeColors = { actMeeting: "#8b5cf6", actCall: "#3b82f6", actEmail: "#f59e0b", actVisit: "#22c55e", actOther: "#94a3b8" };
+                  const isEditing = editingActivity?.id === a.id;
                   return (
-                    <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: i % 2 === 0 ? "#fff" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[a.type] || "#94a3b8", flexShrink: 0 }} />
-                      <span style={{ fontSize: 12, color: "#64748b", minWidth: 90 }}>{new Date(a.date).toLocaleDateString("tr-TR")}</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: typeColors[a.type], minWidth: 80 }}>{t[a.type]}</span>
-                      <span style={{ fontSize: 13, flex: 1 }}>{a.note}</span>
+                    <div key={a.id} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: 8, padding: "10px 16px", alignItems: "center", flexWrap: "wrap" }}>
+                          <select style={{ ...inputStyle, flex: "0 0 120px", padding: "6px 8px" }} value={editingActivity.type} onChange={e => setEditingActivity(p => ({ ...p, type: e.target.value }))}>
+                            <option value="actMeeting">{t.actMeeting}</option>
+                            <option value="actCall">{t.actCall}</option>
+                            <option value="actEmail">{t.actEmail}</option>
+                            <option value="actVisit">{t.actVisit}</option>
+                            <option value="actOther">{t.actOther}</option>
+                          </select>
+                          <input type="date" style={{ ...inputStyle, flex: "0 0 130px", padding: "6px 8px" }} value={editingActivity.date} onChange={e => setEditingActivity(p => ({ ...p, date: e.target.value }))} />
+                          <input style={{ ...inputStyle, flex: 1, minWidth: 150, padding: "6px 8px" }} value={editingActivity.note} onChange={e => setEditingActivity(p => ({ ...p, note: e.target.value }))} />
+                          <button onClick={() => saveActivityEdit(editingActivity)} style={{ ...styles.btn("#22c55e"), padding: "6px 14px", fontSize: 12 }}>✓</button>
+                          <button onClick={() => setEditingActivity(null)} style={{ ...styles.btn("#e5e7eb"), color: "#64748b", padding: "6px 14px", fontSize: 12 }}>{t.cancel}</button>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px" }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[a.type] || "#94a3b8", flexShrink: 0 }} />
+                          <span style={{ fontSize: 12, color: "#64748b", minWidth: 90 }}>{new Date(a.date + "T00:00:00").toLocaleDateString("tr-TR")}</span>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: typeColors[a.type], minWidth: 80 }}>{t[a.type]}</span>
+                          <span style={{ fontSize: 13, flex: 1 }}>{a.note}</span>
+                          <button onClick={() => setEditingActivity({ ...a })} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#94a3b8", padding: "2px 6px" }} title={t.edit}>✎</button>
+                          <button onClick={() => deleteActivity(a)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#fca5a5", padding: "2px 6px" }} title={t.delete}>✕</button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -821,39 +1062,15 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave }) {
           </div>
         )}
 
-        {/* TAB 4: Satış Belgeleri & Değişiklik Tarihçesi */}
+        {/* TAB 4: Teklifler */}
         {tab === 4 && (
-          <div>
-            {sectionTitle(t.salesDocs)}
-            {custProjects.length === 0 ? (
-              <div style={{ color: "#94a3b8", textAlign: "center", padding: 24, fontSize: 14 }}>{t.noSalesDocs}</div>
-            ) : (
-              <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #f1f5f9", marginBottom: 24 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 120px 100px", gap: 0, padding: "10px 16px", background: "#f8fafc", fontWeight: 700, fontSize: 11, color: "#94a3b8", letterSpacing: .5 }}>
-                  <span>{t.docNumber}</span><span>{t.customerCol}</span><span>{t.projectCol}</span><span>{t.docDate}</span><span>{t.docAmount}</span>
-                </div>
-                {custProjects.map((p, i) => (
-                  <div key={p.id} style={{ display: "grid", gridTemplateColumns: "100px 1fr 1fr 120px 100px", gap: 0, padding: "10px 16px", fontSize: 13, borderBottom: "1px solid #f1f5f9", background: i % 2 === 0 ? "#fff" : "#fafbfc" }}>
-                    <span style={{ fontWeight: 600, color: "#3b82f6" }}>SB-{1000 + p.id}</span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{(customers.find(c => c.id === p.customerId) || {}).name || "?"}</span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                    <span style={{ color: "#64748b" }}>{new Date(p.date).toLocaleDateString("tr-TR")}</span>
-                    <span style={{ fontWeight: 600 }}>{formatCurrency(p.amount, p.currency)}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {sectionTitle(t.changeHistory)}
-            <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid #f1f5f9" }}>
-              <div style={{ padding: "12px 16px", fontSize: 13, color: "#64748b", background: "#f8fafc" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span>{new Date().toLocaleDateString("tr-TR")} — {t.createdBy}: Erdi Ögetürk</span>
-                  <span style={{ fontSize: 11, color: "#94a3b8" }}>Kayıt oluşturuldu</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TekliflerTab
+            custProjects={custProjects}
+            customers={customers}
+            t={t}
+            customer={customer}
+            sectionTitle={sectionTitle}
+          />
         )}
 
         <div style={{ display: "flex", gap: 10, marginTop: 20, justifyContent: "flex-end" }}>
@@ -915,13 +1132,16 @@ export default function FiksCRM() {
       const { isNew, logo, ...data } = custData;
       const result = await sb.insert("customers", { ...data, logo_code: data.logo_code || data.name.substring(0, 2).toUpperCase() });
       if (result?.[0]) {
-        setCustomers(prev => [...prev, mapCustomer(result[0])]);
-        setSelectedCustomer(mapCustomer(result[0]));
+        const mapped = mapCustomer(result[0]);
+        setCustomers(prev => [...prev, mapped]);
+        setSelectedCustomer(mapped);
+        return mapped;
       }
     } else {
       const { logo, _customer, ...data } = custData;
       await sb.update("customers", custData.id, data);
       setCustomers(prev => prev.map(c => c.id === custData.id ? { ...c, ...data } : c));
+      return { ...custData, ...data };
     }
   };
 
@@ -939,7 +1159,7 @@ export default function FiksCRM() {
 
   const handleNav = (key) => {
     setPage(key);
-    if (key !== "pipeline") setStatusFilter(null);
+    setStatusFilter(null);
     if (isMobile) setSidebarOpen(false);
   };
 
@@ -1011,7 +1231,7 @@ export default function FiksCRM() {
           {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
           {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} />}
           {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} />}
-          {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} />}
+          {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} onProjectClick={(p) => { const cust = customers.find(c => c.id === p.customerId); if (cust) { setSelectedCustomer(cust); setPage("customerDetail"); } }} />}
           {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} />}
         </div>
       </main>
