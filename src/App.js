@@ -81,6 +81,14 @@ const TRANSLATIONS = {
     save: "Kaydet", cancel: "İptal", edit: "Düzenle", delete: "Sil", addContact: "Kişi Ekle",
     back: "Geri", high: "Yüksek", medium: "Orta", low: "Düşük",
     noActivities: "Henüz aktivite yok", noSalesDocs: "Henüz satış belgesi yok",
+    // ProjectDetail
+    newProposal: "Yeni Teklif", proposalName: "Teklif / Proje Adı", proposalNamePlaceholder: "Teklif adını girin",
+    customer: "Müşteri", currency: "Para Birimi", probability: "Olasılık (%)",
+    nextAction: "Sonraki Aksiyon", actionNote: "Aksiyon Notu", actionNotePlaceholder: "Yapılacak işlem...", actionDate: "Aksiyon Tarihi",
+    // Priority labels
+    Yüksek: "Yüksek", Orta: "Orta", Düşük: "Düşük",
+    // Pipeline new proposal
+    newTeklif: "+ Yeni Teklif",
   },
   en: {
     dashboard: "Dashboard", customers: "Customers", projects: "Projects", pipeline: "Pipeline",
@@ -116,6 +124,14 @@ const TRANSLATIONS = {
     save: "Save", cancel: "Cancel", edit: "Edit", delete: "Delete", addContact: "Add Contact",
     back: "Back", high: "High", medium: "Medium", low: "Low",
     noActivities: "No activities yet", noSalesDocs: "No sales documents yet",
+    // ProjectDetail
+    newProposal: "New Proposal", proposalName: "Proposal / Project Name", proposalNamePlaceholder: "Enter proposal name",
+    customer: "Customer", currency: "Currency", probability: "Probability (%)",
+    nextAction: "Next Action", actionNote: "Action Note", actionNotePlaceholder: "Next step...", actionDate: "Action Date",
+    // Priority labels
+    Yüksek: "High", Orta: "Medium", Düşük: "Low",
+    // Pipeline new proposal
+    newTeklif: "+ New Proposal",
   },
   ar: {
     dashboard: "لوحة القيادة", customers: "العملاء", projects: "المشاريع", pipeline: "خط الأنابيب",
@@ -151,6 +167,14 @@ const TRANSLATIONS = {
     save: "حفظ", cancel: "إلغاء", edit: "تعديل", delete: "حذف", addContact: "إضافة جهة اتصال",
     back: "رجوع", high: "عالي", medium: "متوسط", low: "منخفض",
     noActivities: "لا توجد أنشطة بعد", noSalesDocs: "لا توجد مستندات بعد",
+    // ProjectDetail
+    newProposal: "عرض جديد", proposalName: "اسم العرض / المشروع", proposalNamePlaceholder: "أدخل اسم العرض",
+    customer: "العميل", currency: "العملة", probability: "الاحتمالية (%)",
+    nextAction: "الإجراء التالي", actionNote: "ملاحظة الإجراء", actionNotePlaceholder: "الخطوة التالية...", actionDate: "تاريخ الإجراء",
+    // Priority labels
+    Yüksek: "عالي", Orta: "متوسط", Düşük: "منخفض",
+    // Pipeline new proposal
+    newTeklif: "+ عرض جديد",
   },
 };
 
@@ -373,7 +397,7 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontSize: 12, color: "#64748b" }}>{new Date(p.action.date).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}</div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: PRIORITIES[p.priority]?.color }}>
-                  {PRIORITIES[p.priority]?.icon} {p.priority}
+                  {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
                 </div>
               </div>
             </div>
@@ -454,7 +478,7 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, o
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: PRIORITIES[p.priority]?.color }}>
-                      {PRIORITIES[p.priority]?.icon} {p.priority}
+                      {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
                     </span>
                   </td>
                   <td style={{ padding: "12px 16px", display: "flex", gap: 8 }}>
@@ -547,7 +571,7 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: p.currency === "EUR" ? "#3b82f6" : "#1e293b" }}>{formatCurrency(p.amount, p.currency)}</span>
                       <span style={{ fontSize: 11, fontWeight: 700, color: PRIORITIES[p.priority]?.color }}>
-                        {PRIORITIES[p.priority]?.icon} {p.priority}
+                        {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -625,7 +649,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSave = async () => {
-    if (!form.name.trim()) { alert("Teklif adı zorunlu"); return; }
+    if (!form.name.trim()) { alert(t.proposalName + " " + t.save); return; }
     setSaving(true);
     const payload = {
       name: form.name, customer_id: form.customerId, contact_person: form.contact,
@@ -648,7 +672,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`"${form.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    if (!window.confirm(`"${form.name}" ${t.delete}?`)) return;
     await sb.remove("projects", project.id).catch(console.error);
     if (onDelete) onDelete(project.id);
     setPage(prevPage || "projects");
@@ -672,7 +696,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             {selectedCust && <Avatar customer={selectedCust} size={48} />}
             <div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{form.name || "Yeni Teklif"}</h2>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{form.name || t.newProposal}</h2>
               <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>{selectedCust?.name || "—"}</div>
             </div>
           </div>
@@ -687,25 +711,25 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
         {/* Form grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 20px" }}>
           <div style={{ ...fg, gridColumn: "1 / -1" }}>
-            <label style={lbl}>Teklif / Proje Adı *</label>
-            <input style={inp} value={form.name} onChange={e => upd("name", e.target.value)} placeholder="Teklif adını girin" />
+            <label style={lbl}>{t.proposalName} *</label>
+            <input style={inp} value={form.name} onChange={e => upd("name", e.target.value)} placeholder={t.proposalNamePlaceholder} />
           </div>
           <div style={fg}>
-            <label style={lbl}>Müşteri *</label>
+            <label style={lbl}>{t.customer} *</label>
             <select style={inp} value={form.customerId} onChange={e => upd("customerId", e.target.value)}>
               {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div style={fg}>
             <label style={lbl}>{t.contactCol}</label>
-            <input style={inp} value={form.contact} onChange={e => upd("contact", e.target.value)} placeholder="İlgili kişi" />
+            <input style={inp} value={form.contact} onChange={e => upd("contact", e.target.value)} placeholder={t.contactCol} />
           </div>
           <div style={fg}>
             <label style={lbl}>{t.amountCol}</label>
             <input style={inp} type="number" value={form.amount} onChange={e => upd("amount", e.target.value)} placeholder="0" />
           </div>
           <div style={fg}>
-            <label style={lbl}>Para Birimi</label>
+            <label style={lbl}>{t.currency}</label>
             <select style={inp} value={form.currency} onChange={e => upd("currency", e.target.value)}>
               <option value="TRY">₺ TRY</option>
               <option value="EUR">€ EUR</option>
@@ -731,7 +755,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
             <input style={inp} type="date" value={form.date} onChange={e => upd("date", e.target.value)} />
           </div>
           <div style={fg}>
-            <label style={lbl}>Olasılık (%)</label>
+            <label style={lbl}>{t.probability}</label>
             <input style={inp} type="number" min="0" max="100" value={form.probability} onChange={e => upd("probability", e.target.value)} />
           </div>
         </div>
@@ -745,14 +769,14 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
 
         {/* Aksiyon */}
         <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20, marginBottom: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12 }}>Sonraki Aksiyon</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12 }}>{t.nextAction}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: "0 16px" }}>
             <div style={fg}>
-              <label style={lbl}>Aksiyon Notu</label>
-              <input style={inp} value={form.action_text} onChange={e => upd("action_text", e.target.value)} placeholder="Yapılacak işlem..." />
+              <label style={lbl}>{t.actionNote}</label>
+              <input style={inp} value={form.action_text} onChange={e => upd("action_text", e.target.value)} placeholder={t.actionNotePlaceholder} />
             </div>
             <div style={fg}>
-              <label style={lbl}>Aksiyon Tarihi</label>
+              <label style={lbl}>{t.actionDate}</label>
               <input style={inp} type="date" value={form.action_date} onChange={e => upd("action_date", e.target.value)} />
             </div>
           </div>
@@ -760,7 +784,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
 
         {/* Buttons */}
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
-          <button onClick={handleSave} disabled={saving} style={styles.btn("#3b82f6")}>{saving ? "Kaydediliyor..." : t.save}</button>
+          <button onClick={handleSave} disabled={saving} style={styles.btn("#3b82f6")}>{saving ? "..." : t.save}</button>
           <button onClick={() => setPage(prevPage || "projects")} style={{ ...styles.btn("#e5e7eb"), color: "#64748b" }}>{t.cancel}</button>
         </div>
       </div>
@@ -776,7 +800,7 @@ function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick
   useState(() => { setProjects(custProjects); }, [custProjects]);
 
   const handleDelete = async (p) => {
-    if (!window.confirm(`"${p.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    if (!window.confirm(`"${p.name}" ${t.delete}?`)) return;
     await sb.remove("projects", p.id).catch(console.error);
     setProjects(prev => prev.filter(x => x.id !== p.id));
   };
@@ -785,7 +809,7 @@ function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", paddingBottom: 6, borderBottom: "1px solid #eff6ff", flex: 1 }}>{t.salesDocs}</div>
-        <button onClick={onNewProject} style={{ ...styles.btn("#3b82f6"), fontSize: 12, padding: "6px 14px", marginLeft: 12 }}>+ Yeni Teklif</button>
+        <button onClick={onNewProject} style={{ ...styles.btn("#3b82f6"), fontSize: 12, padding: "6px 14px", marginLeft: 12 }}>{t.newTeklif}</button>
       </div>
       {projects.length === 0 ? (
         <div style={{ color: "#94a3b8", textAlign: "center", padding: 24, fontSize: 14 }}>{t.noSalesDocs}</div>
