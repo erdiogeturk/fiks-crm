@@ -85,6 +85,7 @@ const TRANSLATIONS = {
     lineItems: "Teklif Kalemleri", addLine: "+ Kalem Ekle", lineProduct: "Ürün / Açıklama",
     lineQty: "Miktar", lineUnit: "Birim", lineUnitPrice: "Birim Fiyat", lineDiscount: "İsk. %", lineTotal: "Tutar",
     lineSubtotal: "Ara Toplam", lineGrandTotal: "Genel Toplam",
+    unit_pcs: "Adet", unit_kg: "Kg", unit_ton: "Ton", unit_m2: "m²", unit_m: "m", unit_lt: "Lt", unit_box: "Kutu", unit_pallet: "Palet",
     // Bölge filtresi
     allRegions: "Tüm Bölgeler", regionFilter: "Bölge",
     region_domestic: "Yurt İçi", region_eu: "Avrupa", region_me: "Ortadoğu",
@@ -94,6 +95,10 @@ const TRANSLATIONS = {
     // Teklif geçerlilik & revizyon
     validUntil: "Geçerlilik Tarihi", revision: "Revizyon", revisionNo: "Rev. No",
     addRevision: "Revizyon Ekle", revisionHistory: "Revizyon Tarihçesi",
+    newProposal: "Yeni Teklif", proposalName: "Teklif / Proje Adı", proposalNamePlaceholder: "Teklif adını girin",
+    customerLabel: "Müşteri", currency: "Para Birimi", probability: "Olasılık (%)",
+    nextAction: "Sonraki Aksiyon", actionNote: "Aksiyon Notu", actionNotePlaceholder: "Yapılacak işlem...", actionDate: "Aksiyon Tarihi",
+    Yüksek: "Yüksek", Orta: "Orta", Düşük: "Düşük", newTeklif: "+ Yeni Teklif",
   },
   en: {
     dashboard: "Dashboard", customers: "Customers", projects: "Projects", pipeline: "Pipeline",
@@ -132,12 +137,17 @@ const TRANSLATIONS = {
     lineItems: "Line Items", addLine: "+ Add Line", lineProduct: "Product / Description",
     lineQty: "Qty", lineUnit: "Unit", lineUnitPrice: "Unit Price", lineDiscount: "Disc. %", lineTotal: "Total",
     lineSubtotal: "Subtotal", lineGrandTotal: "Grand Total",
+    unit_pcs: "Pcs", unit_kg: "Kg", unit_ton: "Ton", unit_m2: "m²", unit_m: "m", unit_lt: "Lt", unit_box: "Box", unit_pallet: "Pallet",
     allRegions: "All Regions", regionFilter: "Region",
     region_domestic: "Domestic", region_eu: "Europe", region_me: "Middle East",
     region_africa: "North Africa", region_blacksea: "Black Sea", region_other: "Other",
     actContact: "Contact Person",
     validUntil: "Valid Until", revision: "Revision", revisionNo: "Rev. No",
     addRevision: "Add Revision", revisionHistory: "Revision History",
+    newProposal: "New Proposal", proposalName: "Proposal / Project Name", proposalNamePlaceholder: "Enter proposal name",
+    customerLabel: "Customer", currency: "Currency", probability: "Probability (%)",
+    nextAction: "Next Action", actionNote: "Action Note", actionNotePlaceholder: "Next step...", actionDate: "Action Date",
+    Yüksek: "High", Orta: "Medium", Düşük: "Low", newTeklif: "+ New Proposal",
   },
   ar: {
     dashboard: "لوحة القيادة", customers: "العملاء", projects: "المشاريع", pipeline: "خط الأنابيب",
@@ -176,12 +186,17 @@ const TRANSLATIONS = {
     lineItems: "بنود العرض", addLine: "+ إضافة بند", lineProduct: "المنتج / الوصف",
     lineQty: "الكمية", lineUnit: "الوحدة", lineUnitPrice: "سعر الوحدة", lineDiscount: "الخصم %", lineTotal: "الإجمالي",
     lineSubtotal: "المجموع الفرعي", lineGrandTotal: "الإجمالي الكلي",
+    unit_pcs: "قطعة", unit_kg: "كغ", unit_ton: "طن", unit_m2: "م²", unit_m: "م", unit_lt: "لتر", unit_box: "صندوق", unit_pallet: "منصة",
     allRegions: "جميع المناطق", regionFilter: "المنطقة",
     region_domestic: "محلي", region_eu: "أوروبا", region_me: "الشرق الأوسط",
     region_africa: "شمال أفريقيا", region_blacksea: "البحر الأسود", region_other: "أخرى",
     actContact: "جهة الاتصال",
     validUntil: "صالح حتى", revision: "المراجعة", revisionNo: "رقم المراجعة",
     addRevision: "إضافة مراجعة", revisionHistory: "سجل المراجعات",
+    newProposal: "عرض جديد", proposalName: "اسم العرض / المشروع", proposalNamePlaceholder: "أدخل اسم العرض",
+    customerLabel: "العميل", currency: "العملة", probability: "الاحتمالية (%)",
+    nextAction: "الإجراء التالي", actionNote: "ملاحظة الإجراء", actionNotePlaceholder: "الخطوة التالية...", actionDate: "تاريخ الإجراء",
+    Yüksek: "عالي", Orta: "متوسط", Düşük: "منخفض", newTeklif: "+ عرض جديد",
   },
 };
 
@@ -693,12 +708,12 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   const [lineItems, setLineItems] = useState(
     project?.lineItems?.length
       ? project.lineItems
-      : [{ id: 1, product: "", qty: 1, unit: "Adet", unitPrice: "", discount: 0 }]
+      : [{ id: 1, product: "", qty: 1, unit: "unit_pcs", unitPrice: "", discount: 0 }]
   );
   const [saving, setSaving] = useState(false);
 
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
-  const addLine = () => setLineItems(prev => [...prev, { id: Date.now(), product: "", qty: 1, unit: "Adet", unitPrice: "", discount: 0 }]);
+  const addLine = () => setLineItems(prev => [...prev, { id: Date.now(), product: "", qty: 1, unit: "unit_pcs", unitPrice: "", discount: 0 }]);
   const removeLine = (id) => setLineItems(prev => prev.filter(l => l.id !== id));
   const updLine = (id, k, v) => setLineItems(prev => prev.map(l => l.id === id ? { ...l, [k]: v } : l));
   const lineTotal = (l) => Number(l.qty) * Number(l.unitPrice) * (1 - Number(l.discount) / 100);
@@ -854,7 +869,12 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
                   <input style={inpSm} value={l.product} onChange={e => updLine(l.id, "product", e.target.value)} placeholder={t.lineProduct} />
                   <input style={inpSm} type="number" min="0" value={l.qty} onChange={e => updLine(l.id, "qty", e.target.value)} />
                   <select style={inpSm} value={l.unit} onChange={e => updLine(l.id, "unit", e.target.value)}>
-                    {["Adet","Kg","Ton","m²","m","Lt","Kutu","Palet"].map(u => <option key={u}>{u}</option>)}
+                    {[
+                      { key: "unit_pcs", val: t.unit_pcs }, { key: "unit_kg", val: t.unit_kg },
+                      { key: "unit_ton", val: t.unit_ton }, { key: "unit_m2", val: t.unit_m2 },
+                      { key: "unit_m", val: t.unit_m }, { key: "unit_lt", val: t.unit_lt },
+                      { key: "unit_box", val: t.unit_box }, { key: "unit_pallet", val: t.unit_pallet },
+                    ].map(u => <option key={u.key} value={u.val}>{u.val}</option>)}
                   </select>
                   <input style={inpSm} type="number" min="0" value={l.unitPrice} onChange={e => updLine(l.id, "unitPrice", e.target.value)} placeholder="0" />
                   <input style={inpSm} type="number" min="0" max="100" value={l.discount} onChange={e => updLine(l.id, "discount", e.target.value)} />
