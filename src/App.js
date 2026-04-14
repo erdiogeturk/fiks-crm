@@ -81,11 +81,19 @@ const TRANSLATIONS = {
     save: "Kaydet", cancel: "İptal", edit: "Düzenle", delete: "Sil", addContact: "Kişi Ekle",
     back: "Geri", high: "Yüksek", medium: "Orta", low: "Düşük",
     noActivities: "Henüz aktivite yok", noSalesDocs: "Henüz satış belgesi yok",
-    newProposal: "Yeni Teklif", proposalName: "Teklif / Proje Adı", proposalNamePlaceholder: "Teklif adını girin",
-    customerLabel: "Müşteri", currency: "Para Birimi", probability: "Olasılık (%)",
-    nextAction: "Sonraki Aksiyon", actionNote: "Aksiyon Notu", actionNotePlaceholder: "Yapılacak işlem...", actionDate: "Aksiyon Tarihi",
-    Yüksek: "Yüksek", Orta: "Orta", Düşük: "Düşük",
-    newTeklif: "+ Yeni Teklif",
+    // Teklif kalemleri
+    lineItems: "Teklif Kalemleri", addLine: "+ Kalem Ekle", lineProduct: "Ürün / Açıklama",
+    lineQty: "Miktar", lineUnit: "Birim", lineUnitPrice: "Birim Fiyat", lineDiscount: "İsk. %", lineTotal: "Tutar",
+    lineSubtotal: "Ara Toplam", lineGrandTotal: "Genel Toplam",
+    // Bölge filtresi
+    allRegions: "Tüm Bölgeler", regionFilter: "Bölge",
+    region_domestic: "Yurt İçi", region_eu: "Avrupa", region_me: "Ortadoğu",
+    region_africa: "Kuzey Afrika", region_blacksea: "Karadeniz Çevresi", region_other: "Diğer",
+    // Kontak seçimi aktivitede
+    actContact: "İlgili Kişi",
+    // Teklif geçerlilik & revizyon
+    validUntil: "Geçerlilik Tarihi", revision: "Revizyon", revisionNo: "Rev. No",
+    addRevision: "Revizyon Ekle", revisionHistory: "Revizyon Tarihçesi",
   },
   en: {
     dashboard: "Dashboard", customers: "Customers", projects: "Projects", pipeline: "Pipeline",
@@ -121,11 +129,15 @@ const TRANSLATIONS = {
     save: "Save", cancel: "Cancel", edit: "Edit", delete: "Delete", addContact: "Add Contact",
     back: "Back", high: "High", medium: "Medium", low: "Low",
     noActivities: "No activities yet", noSalesDocs: "No sales documents yet",
-    newProposal: "New Proposal", proposalName: "Proposal / Project Name", proposalNamePlaceholder: "Enter proposal name",
-    customerLabel: "Customer", currency: "Currency", probability: "Probability (%)",
-    nextAction: "Next Action", actionNote: "Action Note", actionNotePlaceholder: "Next step...", actionDate: "Action Date",
-    Yüksek: "High", Orta: "Medium", Düşük: "Low",
-    newTeklif: "+ New Proposal",
+    lineItems: "Line Items", addLine: "+ Add Line", lineProduct: "Product / Description",
+    lineQty: "Qty", lineUnit: "Unit", lineUnitPrice: "Unit Price", lineDiscount: "Disc. %", lineTotal: "Total",
+    lineSubtotal: "Subtotal", lineGrandTotal: "Grand Total",
+    allRegions: "All Regions", regionFilter: "Region",
+    region_domestic: "Domestic", region_eu: "Europe", region_me: "Middle East",
+    region_africa: "North Africa", region_blacksea: "Black Sea", region_other: "Other",
+    actContact: "Contact Person",
+    validUntil: "Valid Until", revision: "Revision", revisionNo: "Rev. No",
+    addRevision: "Add Revision", revisionHistory: "Revision History",
   },
   ar: {
     dashboard: "لوحة القيادة", customers: "العملاء", projects: "المشاريع", pipeline: "خط الأنابيب",
@@ -161,11 +173,15 @@ const TRANSLATIONS = {
     save: "حفظ", cancel: "إلغاء", edit: "تعديل", delete: "حذف", addContact: "إضافة جهة اتصال",
     back: "رجوع", high: "عالي", medium: "متوسط", low: "منخفض",
     noActivities: "لا توجد أنشطة بعد", noSalesDocs: "لا توجد مستندات بعد",
-    newProposal: "عرض جديد", proposalName: "اسم العرض / المشروع", proposalNamePlaceholder: "أدخل اسم العرض",
-    customerLabel: "العميل", currency: "العملة", probability: "الاحتمالية (%)",
-    nextAction: "الإجراء التالي", actionNote: "ملاحظة الإجراء", actionNotePlaceholder: "الخطوة التالية...", actionDate: "تاريخ الإجراء",
-    Yüksek: "عالي", Orta: "متوسط", Düşük: "منخفض",
-    newTeklif: "+ عرض جديد",
+    lineItems: "بنود العرض", addLine: "+ إضافة بند", lineProduct: "المنتج / الوصف",
+    lineQty: "الكمية", lineUnit: "الوحدة", lineUnitPrice: "سعر الوحدة", lineDiscount: "الخصم %", lineTotal: "الإجمالي",
+    lineSubtotal: "المجموع الفرعي", lineGrandTotal: "الإجمالي الكلي",
+    allRegions: "جميع المناطق", regionFilter: "المنطقة",
+    region_domestic: "محلي", region_eu: "أوروبا", region_me: "الشرق الأوسط",
+    region_africa: "شمال أفريقيا", region_blacksea: "البحر الأسود", region_other: "أخرى",
+    actContact: "جهة الاتصال",
+    validUntil: "صالح حتى", revision: "المراجعة", revisionNo: "رقم المراجعة",
+    addRevision: "إضافة مراجعة", revisionHistory: "سجل المراجعات",
   },
 };
 
@@ -227,6 +243,10 @@ const mapProject = (p, customers) => {
     amount: Number(p.amount), currency: p.currency, date: p.project_date,
     status: normalizeStatus(p.status), priority: normalizePriority(p.priority), probability: p.probability,
     action: p.action_text ? { text: p.action_text, date: p.action_date } : null,
+    region: p.region || "domestic",
+    validUntil: p.valid_until || "",
+    revisionNo: p.revision_no || 0,
+    lineItems: p.line_items ? (typeof p.line_items === "string" ? JSON.parse(p.line_items) : p.line_items) : [],
     _customer: cust,
   };
 };
@@ -300,20 +320,34 @@ const Icons = {
 
 // ─── DASHBOARD ───
 function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelectedCustomer }) {
-  const totalProjects = projects.length;
-  const uniqueCustomers = new Set(projects.map(p => p.customerId)).size;
-  const wonProjects = projects.filter(p => p.status === "Kazanıldı");
-  const closedProjects = projects.filter(p => p.status === "Kazanıldı" || p.status === "Kaybedildi");
+  const [regionFilter, setRegionFilter] = useState("all");
+
+  const REGIONS = [
+    { key: "all", label: t.allRegions },
+    { key: "domestic", label: t.region_domestic },
+    { key: "eu", label: t.region_eu },
+    { key: "me", label: t.region_me },
+    { key: "africa", label: t.region_africa },
+    { key: "blacksea", label: t.region_blacksea },
+    { key: "other", label: t.region_other },
+  ];
+
+  const filteredProjects = regionFilter === "all" ? projects : projects.filter(p => (p.region || "domestic") === regionFilter);
+
+  const totalProjects = filteredProjects.length;
+  const uniqueCustomers = new Set(filteredProjects.map(p => p.customerId)).size;
+  const wonProjects = filteredProjects.filter(p => p.status === "Kazanıldı");
+  const closedProjects = filteredProjects.filter(p => p.status === "Kazanıldı" || p.status === "Kaybedildi");
   const wonAmount = wonProjects.reduce((s, p) => s + toTRY(p.amount, p.currency), 0);
   const winRate = closedProjects.length > 0 ? Math.round((wonProjects.length / closedProjects.length) * 100) : 0;
 
   const statusGroups = {};
   Object.keys(STATUSES).forEach(s => {
-    const ps = projects.filter(p => p.status === s);
+    const ps = filteredProjects.filter(p => p.status === s);
     statusGroups[s] = { count: ps.length, amount: ps.reduce((a, p) => a + toTRY(p.amount, p.currency), 0) };
   });
 
-  const upcomingActions = projects.filter(p => p.action).sort((a, b) => new Date(a.action.date) - new Date(b.action.date));
+  const upcomingActions = filteredProjects.filter(p => p.action).sort((a, b) => new Date(a.action.date) - new Date(b.action.date));
 
   const handleStatusClick = (status) => {
     setStatusFilter(status);
@@ -329,6 +363,18 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
 
   return (
     <div>
+      {/* Bölge filtresi */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {REGIONS.map(r => (
+          <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{
+            padding: "6px 14px", borderRadius: 20, border: "1.5px solid",
+            borderColor: regionFilter === r.key ? "#3b82f6" : "#e5e7eb",
+            background: regionFilter === r.key ? "#eff6ff" : "#fff",
+            color: regionFilter === r.key ? "#3b82f6" : "#64748b",
+            fontSize: 12, fontWeight: regionFilter === r.key ? 700 : 400, cursor: "pointer",
+          }}>{r.label}</button>
+        ))}
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
         {kpiCards.map((k, i) => (
           <div key={i} onClick={k.onClick} style={{
@@ -388,7 +434,7 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{ fontSize: 12, color: "#64748b" }}>{new Date(p.action.date).toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric" })}</div>
                 <div style={{ fontSize: 11, fontWeight: 700, color: PRIORITIES[p.priority]?.color }}>
-                  {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
+                  {PRIORITIES[p.priority]?.icon} {p.priority}
                 </div>
               </div>
             </div>
@@ -469,7 +515,7 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, o
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: PRIORITIES[p.priority]?.color }}>
-                      {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
+                      {PRIORITIES[p.priority]?.icon} {p.priority}
                     </span>
                   </td>
                   <td style={{ padding: "12px 16px", display: "flex", gap: 8 }}>
@@ -562,7 +608,7 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
                       <span style={{ fontSize: 15, fontWeight: 700, color: p.currency === "EUR" ? "#3b82f6" : "#1e293b" }}>{formatCurrency(p.amount, p.currency)}</span>
                       <span style={{ fontSize: 11, fontWeight: 700, color: PRIORITIES[p.priority]?.color }}>
-                        {PRIORITIES[p.priority]?.icon} {t[p.priority] || p.priority}
+                        {PRIORITIES[p.priority]?.icon} {p.priority}
                       </span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -621,12 +667,16 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects })
 // ─── PROJE / TEKLİF DETAY SAYFASI ───
 function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDelete }) {
   const isNew = !project?.id;
+  const REGION_OPTIONS = [
+    { key: "domestic", label: t.region_domestic }, { key: "eu", label: t.region_eu },
+    { key: "me", label: t.region_me }, { key: "africa", label: t.region_africa },
+    { key: "blacksea", label: t.region_blacksea }, { key: "other", label: t.region_other },
+  ];
 
   const [form, setForm] = useState({
     name: project?.name || "",
     customerId: project?.customerId || (customers[0]?.id || ""),
     contact: project?.contact || "",
-    amount: project?.amount || "",
     currency: project?.currency || "TRY",
     date: project?.date || new Date().toISOString().split("T")[0],
     status: project?.status || "Lead",
@@ -634,20 +684,39 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
     probability: project?.probability ?? 50,
     action_text: project?.action?.text || "",
     action_date: project?.action?.date || "",
+    region: project?.region || "domestic",
+    validUntil: project?.validUntil || "",
+    revisionNo: project?.revisionNo || 0,
+    amount: project?.amount || "",
   });
+
+  const [lineItems, setLineItems] = useState(
+    project?.lineItems?.length
+      ? project.lineItems
+      : [{ id: 1, product: "", qty: 1, unit: "Adet", unitPrice: "", discount: 0 }]
+  );
   const [saving, setSaving] = useState(false);
 
   const upd = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const addLine = () => setLineItems(prev => [...prev, { id: Date.now(), product: "", qty: 1, unit: "Adet", unitPrice: "", discount: 0 }]);
+  const removeLine = (id) => setLineItems(prev => prev.filter(l => l.id !== id));
+  const updLine = (id, k, v) => setLineItems(prev => prev.map(l => l.id === id ? { ...l, [k]: v } : l));
+  const lineTotal = (l) => Number(l.qty) * Number(l.unitPrice) * (1 - Number(l.discount) / 100);
+  const grandTotal = lineItems.reduce((s, l) => s + lineTotal(l), 0);
+  const hasLines = lineItems.some(l => l.product && l.unitPrice);
+  const effectiveAmount = hasLines ? grandTotal : Number(form.amount) || 0;
 
   const handleSave = async () => {
-    if (!form.name.trim()) { alert("Teklif adı zorunlu"); return; }
+    if (!form.name.trim()) { alert(t.proposalName + "!"); return; }
     setSaving(true);
     const payload = {
       name: form.name, customer_id: form.customerId, contact_person: form.contact,
-      amount: Number(form.amount) || 0, currency: form.currency,
-      project_date: form.date, status: form.status, priority: form.priority,
-      probability: Number(form.probability) || 0,
+      amount: effectiveAmount, currency: form.currency, project_date: form.date,
+      status: form.status, priority: form.priority, probability: Number(form.probability) || 0,
       action_text: form.action_text || null, action_date: form.action_date || null,
+      region: form.region, valid_until: form.validUntil || null,
+      revision_no: Number(form.revisionNo) || 0,
+      line_items: hasLines ? JSON.stringify(lineItems) : null,
     };
     try {
       if (isNew) {
@@ -655,7 +724,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
         if (result?.[0] && onSave) onSave(result[0], true);
       } else {
         await sb.update("projects", project.id, payload);
-        if (onSave) onSave({ ...project, ...form, id: project.id }, false);
+        if (onSave) onSave({ ...project, ...form, id: project.id, lineItems, amount: effectiveAmount }, false);
       }
       setPage(prevPage || "projects");
     } catch (e) { console.error(e); }
@@ -663,13 +732,14 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`"${form.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    if (!window.confirm(`"${form.name}" ${t.delete}?`)) return;
     await sb.remove("projects", project.id).catch(console.error);
     if (onDelete) onDelete(project.id);
     setPage(prevPage || "projects");
   };
 
   const inp = { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 14, outline: "none", background: "#f9fafb", boxSizing: "border-box" };
+  const inpSm = { padding: "8px 8px", borderRadius: 8, border: "1.5px solid #e5e7eb", fontSize: 12, outline: "none", background: "#f9fafb", width: "100%", boxSizing: "border-box" };
   const lbl = { fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 4, display: "block" };
   const fg = { marginBottom: 16 };
   const selectedCust = customers.find(c => c.id === form.customerId);
@@ -680,27 +750,31 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
       <button onClick={() => setPage(prevPage || "projects")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#3b82f6", fontWeight: 600, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
         {Icons.back} {t.back}
       </button>
-
       <div style={{ ...styles.card }}>
-        {/* Başlık */}
+        {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             {selectedCust && <Avatar customer={selectedCust} size={48} />}
             <div>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{form.name || t.newProposal}</h2>
-              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>{selectedCust?.name || "—"}</div>
+              <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 2 }}>
+                {selectedCust?.name || "—"}
+                {form.revisionNo > 0 && <span style={{ marginLeft: 8, background: "#fffbeb", color: "#f59e0b", fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 10, border: "1px solid #fde68a" }}>Rev.{String(form.revisionNo).padStart(2,"0")}</span>}
+                {form.validUntil && <span style={{ marginLeft: 8, fontSize: 11, color: "#94a3b8" }}>⏱ {new Date(form.validUntil + "T00:00:00").toLocaleDateString("tr-TR")}</span>}
+              </div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {s && <span style={{ padding: "5px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{t[form.status]}</span>}
-            {!isNew && (
+            {!isNew && <>
+              <button onClick={() => upd("revisionNo", Number(form.revisionNo) + 1)} style={{ padding: "6px 12px", borderRadius: 8, border: "1px solid #fde68a", background: "#fffbeb", color: "#f59e0b", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>↑ {t.addRevision}</button>
               <button onClick={handleDelete} style={{ ...styles.btn("#fef2f2"), color: "#ef4444", fontSize: 13 }}>✕ {t.delete}</button>
-            )}
+            </>}
           </div>
         </div>
 
-        {/* Form grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "0 20px" }}>
+        {/* Ana alanlar */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: "0 20px" }}>
           <div style={{ ...fg, gridColumn: "1 / -1" }}>
             <label style={lbl}>{t.proposalName} *</label>
             <input style={inp} value={form.name} onChange={e => upd("name", e.target.value)} placeholder={t.proposalNamePlaceholder} />
@@ -716,29 +790,27 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
             <input style={inp} value={form.contact} onChange={e => upd("contact", e.target.value)} placeholder={t.contactCol} />
           </div>
           <div style={fg}>
-            <label style={lbl}>{t.amountCol}</label>
-            <input style={inp} type="number" value={form.amount} onChange={e => upd("amount", e.target.value)} placeholder="0" />
+            <label style={lbl}>{t.regionFilter}</label>
+            <select style={inp} value={form.region} onChange={e => upd("region", e.target.value)}>
+              {REGION_OPTIONS.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+            </select>
           </div>
           <div style={fg}>
             <label style={lbl}>{t.currency}</label>
             <select style={inp} value={form.currency} onChange={e => upd("currency", e.target.value)}>
-              <option value="TRY">₺ TRY</option>
-              <option value="EUR">€ EUR</option>
-              <option value="USD">$ USD</option>
+              <option value="TRY">₺ TRY</option><option value="EUR">€ EUR</option><option value="USD">$ USD</option>
             </select>
           </div>
           <div style={fg}>
             <label style={lbl}>{t.statusCol}</label>
             <select style={inp} value={form.status} onChange={e => upd("status", e.target.value)}>
-              {Object.keys(STATUSES).map(s => <option key={s} value={s}>{t[s] || s}</option>)}
+              {Object.keys(STATUSES).map(st => <option key={st} value={st}>{t[st] || st}</option>)}
             </select>
           </div>
           <div style={fg}>
             <label style={lbl}>{t.priorityCol}</label>
             <select style={inp} value={form.priority} onChange={e => upd("priority", e.target.value)}>
-              <option value="Yüksek">{t.high}</option>
-              <option value="Orta">{t.medium}</option>
-              <option value="Düşük">{t.low}</option>
+              <option value="Yüksek">{t.high}</option><option value="Orta">{t.medium}</option><option value="Düşük">{t.low}</option>
             </select>
           </div>
           <div style={fg}>
@@ -746,19 +818,69 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
             <input style={inp} type="date" value={form.date} onChange={e => upd("date", e.target.value)} />
           </div>
           <div style={fg}>
+            <label style={lbl}>{t.validUntil}</label>
+            <input style={inp} type="date" value={form.validUntil} onChange={e => upd("validUntil", e.target.value)} />
+          </div>
+          <div style={fg}>
             <label style={lbl}>{t.probability}</label>
             <input style={inp} type="number" min="0" max="100" value={form.probability} onChange={e => upd("probability", e.target.value)} />
           </div>
+          <div style={fg}>
+            <label style={lbl}>{t.revisionNo}</label>
+            <input style={inp} type="number" min="0" value={form.revisionNo} onChange={e => upd("revisionNo", e.target.value)} />
+          </div>
         </div>
 
-        {/* Probability bar */}
-        <div style={{ margin: "4px 0 20px" }}>
+        {/* Olasılık bar */}
+        <div style={{ marginBottom: 20 }}>
           <div style={{ height: 6, background: "#f1f5f9", borderRadius: 3, overflow: "hidden" }}>
             <div style={{ width: `${form.probability}%`, height: "100%", borderRadius: 3, background: form.probability >= 80 ? "#22c55e" : form.probability >= 50 ? "#f59e0b" : "#ef4444", transition: "width .3s" }} />
           </div>
         </div>
 
-        {/* Next Action */}
+        {/* TEKLİF KALEMLERİ */}
+        <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6" }}>{t.lineItems}</div>
+            <button onClick={addLine} style={{ padding: "5px 12px", borderRadius: 8, border: "1.5px solid #bfdbfe", background: "#eff6ff", color: "#3b82f6", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>{t.addLine}</button>
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 700 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "2fr 60px 80px 110px 60px 110px 28px", gap: "0 6px", padding: "6px 8px", background: "#f8fafc", borderRadius: 8, marginBottom: 6, fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>
+                <span>{t.lineProduct}</span><span>{t.lineQty}</span><span>{t.lineUnit}</span><span>{t.lineUnitPrice}</span><span>{t.lineDiscount}</span><span style={{ textAlign: "right" }}>{t.lineTotal}</span><span/>
+              </div>
+              {lineItems.map((l) => (
+                <div key={l.id} style={{ display: "grid", gridTemplateColumns: "2fr 60px 80px 110px 60px 110px 28px", gap: "0 6px", marginBottom: 6, alignItems: "center" }}>
+                  <input style={inpSm} value={l.product} onChange={e => updLine(l.id, "product", e.target.value)} placeholder={t.lineProduct} />
+                  <input style={inpSm} type="number" min="0" value={l.qty} onChange={e => updLine(l.id, "qty", e.target.value)} />
+                  <select style={inpSm} value={l.unit} onChange={e => updLine(l.id, "unit", e.target.value)}>
+                    {["Adet","Kg","Ton","m²","m","Lt","Kutu","Palet"].map(u => <option key={u}>{u}</option>)}
+                  </select>
+                  <input style={inpSm} type="number" min="0" value={l.unitPrice} onChange={e => updLine(l.id, "unitPrice", e.target.value)} placeholder="0" />
+                  <input style={inpSm} type="number" min="0" max="100" value={l.discount} onChange={e => updLine(l.id, "discount", e.target.value)} />
+                  <div style={{ textAlign: "right", fontSize: 13, fontWeight: 600 }}>{formatCurrency(lineTotal(l), form.currency)}</div>
+                  {lineItems.length > 1
+                    ? <button onClick={() => removeLine(l.id)} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontSize: 16, padding: 0 }}>✕</button>
+                    : <span/>}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 12, paddingTop: 12, borderTop: "1px dashed #e5e7eb", alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>{t.lineGrandTotal}</span>
+            <span style={{ fontSize: 18, fontWeight: 800, color: "#1e293b" }}>{formatCurrency(grandTotal, form.currency)}</span>
+          </div>
+        </div>
+
+        {/* Manuel tutar — sadece kalem girilmemişse */}
+        {!hasLines && (
+          <div style={fg}>
+            <label style={lbl}>{t.amountCol}</label>
+            <input style={inp} type="number" value={form.amount} onChange={e => upd("amount", e.target.value)} placeholder="0" />
+          </div>
+        )}
+
+        {/* Sonraki Aksiyon */}
         <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 20, marginBottom: 8 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", marginBottom: 12 }}>{t.nextAction}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 180px", gap: "0 16px" }}>
@@ -773,7 +895,7 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* Butonlar */}
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 8 }}>
           <button onClick={handleSave} disabled={saving} style={styles.btn("#3b82f6")}>{saving ? "..." : t.save}</button>
           <button onClick={() => setPage(prevPage || "projects")} style={{ ...styles.btn("#e5e7eb"), color: "#64748b" }}>{t.cancel}</button>
@@ -800,7 +922,7 @@ function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#3b82f6", paddingBottom: 6, borderBottom: "1px solid #eff6ff", flex: 1 }}>{t.salesDocs}</div>
-        <button onClick={onNewProject} style={{ ...styles.btn("#3b82f6"), fontSize: 12, padding: "6px 14px", marginLeft: 12 }}>{t.newTeklif}</button>
+        <button onClick={onNewProject} style={{ ...styles.btn("#3b82f6"), fontSize: 12, padding: "6px 14px", marginLeft: 12 }}>+ Yeni Teklif</button>
       </div>
       {projects.length === 0 ? (
         <div style={{ color: "#94a3b8", textAlign: "center", padding: 24, fontSize: 14 }}>{t.noSalesDocs}</div>
@@ -858,7 +980,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
   const [contacts, setContacts] = useState([{ id: 1, firstName: "", lastName: "", position: "", phone: "", email: "" }]);
   const [activities, setActivities] = useState([]);
   const [activitiesLoaded, setActivitiesLoaded] = useState(false);
-  const [newActivity, setNewActivity] = useState({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
+  const [newActivity, setNewActivity] = useState({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0], contactId: "" });
   const [editingActivity, setEditingActivity] = useState(null);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState(customer.logo_url || null);
@@ -913,7 +1035,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
     try {
       const data = await sb.query("customer_activities", { eq: { customer_id: customer.id }, order: "activity_date.desc" });
       if (Array.isArray(data) && data.length > 0) {
-        setActivities(data.map(r => ({ id: r.id, db_id: r.id, type: r.activity_type || "actMeeting", note: r.note || "", date: r.activity_date || "" })));
+        setActivities(data.map(r => ({ id: r.id, db_id: r.id, type: r.activity_type || "actMeeting", note: r.note || "", date: r.activity_date || "", contactId: r.contact_id || "" })));
       }
     } catch (e) { console.error(e); }
     setActivitiesLoaded(true);
@@ -923,10 +1045,10 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
     if (!newActivity.note.trim()) return;
     const entry = { id: Date.now(), ...newActivity };
     setActivities(prev => [entry, ...prev]);
-    setNewActivity({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0] });
+    setNewActivity({ type: "actMeeting", note: "", date: new Date().toISOString().split("T")[0], contactId: "" });
     if (!customer.isNew) {
       try {
-        const result = await sb.insert("customer_activities", { customer_id: customer.id, activity_type: entry.type, note: entry.note, activity_date: entry.date });
+        const result = await sb.insert("customer_activities", { customer_id: customer.id, activity_type: entry.type, note: entry.note, activity_date: entry.date, contact_id: entry.contactId || null });
         if (result?.[0]) setActivities(prev => prev.map(a => a.id === entry.id ? { ...a, db_id: result[0].id } : a));
       } catch (e) { console.error(e); }
     }
@@ -1121,6 +1243,15 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
                 <label style={labelStyle}>{t.activityDate}</label>
                 <input style={inputStyle} type="date" value={newActivity.date} onChange={e => setNewActivity(p => ({ ...p, date: e.target.value }))} />
               </div>
+              <div style={{ flex: "0 0 160px" }}>
+                <label style={labelStyle}>{t.actContact}</label>
+                <select style={inputStyle} value={newActivity.contactId} onChange={e => setNewActivity(p => ({ ...p, contactId: e.target.value }))}>
+                  <option value="">—</option>
+                  {contacts.filter(c => c.firstName || c.lastName).map(c => (
+                    <option key={c.id} value={c.id}>{[c.firstName, c.lastName].filter(Boolean).join(" ")}{c.position ? ` · ${c.position}` : ""}</option>
+                  ))}
+                </select>
+              </div>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <label style={labelStyle}>{t.activityNote}</label>
                 <input style={inputStyle} value={newActivity.note} onChange={e => setNewActivity(p => ({ ...p, note: e.target.value }))} placeholder="Not ekle..." onKeyDown={e => e.key === "Enter" && addActivityEntry()} />
@@ -1134,6 +1265,8 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
                 {activities.map((a, i) => {
                   const typeColors = { actMeeting: "#8b5cf6", actCall: "#3b82f6", actEmail: "#f59e0b", actVisit: "#22c55e", actOther: "#94a3b8" };
                   const isEditing = editingActivity?.id === a.id;
+                  const actContact = contacts.find(c => c.id === a.contactId || String(c.id) === String(a.contactId));
+                  const actContactName = actContact ? [actContact.firstName, actContact.lastName].filter(Boolean).join(" ") : null;
                   return (
                     <div key={a.id} style={{ background: i % 2 === 0 ? "#fff" : "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
                       {isEditing ? (
@@ -1146,6 +1279,12 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
                             <option value="actOther">{t.actOther}</option>
                           </select>
                           <input type="date" style={{ ...inputStyle, flex: "0 0 130px", padding: "6px 8px" }} value={editingActivity.date} onChange={e => setEditingActivity(p => ({ ...p, date: e.target.value }))} />
+                          <select style={{ ...inputStyle, flex: "0 0 150px", padding: "6px 8px" }} value={editingActivity.contactId || ""} onChange={e => setEditingActivity(p => ({ ...p, contactId: e.target.value }))}>
+                            <option value="">—</option>
+                            {contacts.filter(c => c.firstName || c.lastName).map(c => (
+                              <option key={c.id} value={c.id}>{[c.firstName, c.lastName].filter(Boolean).join(" ")}</option>
+                            ))}
+                          </select>
                           <input style={{ ...inputStyle, flex: 1, minWidth: 150, padding: "6px 8px" }} value={editingActivity.note} onChange={e => setEditingActivity(p => ({ ...p, note: e.target.value }))} />
                           <button onClick={() => saveActivityEdit(editingActivity)} style={{ ...styles.btn("#22c55e"), padding: "6px 14px", fontSize: 12 }}>✓</button>
                           <button onClick={() => setEditingActivity(null)} style={{ ...styles.btn("#e5e7eb"), color: "#64748b", padding: "6px 14px", fontSize: 12 }}>{t.cancel}</button>
@@ -1155,6 +1294,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
                           <div style={{ width: 8, height: 8, borderRadius: "50%", background: typeColors[a.type] || "#94a3b8", flexShrink: 0 }} />
                           <span style={{ fontSize: 12, color: "#64748b", minWidth: 90 }}>{new Date(a.date + "T00:00:00").toLocaleDateString("tr-TR")}</span>
                           <span style={{ fontSize: 12, fontWeight: 600, color: typeColors[a.type], minWidth: 80 }}>{t[a.type]}</span>
+                          {actContactName && <span style={{ fontSize: 11, background: "#eff6ff", color: "#3b82f6", borderRadius: 10, padding: "2px 8px", fontWeight: 500 }}>👤 {actContactName}</span>}
                           <span style={{ fontSize: 13, flex: 1 }}>{a.note}</span>
                           <button onClick={() => setEditingActivity({ ...a })} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#94a3b8", padding: "2px 6px" }} title={t.edit}>✎</button>
                           <button onClick={() => deleteActivity(a)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#fca5a5", padding: "2px 6px" }} title={t.delete}>✕</button>
