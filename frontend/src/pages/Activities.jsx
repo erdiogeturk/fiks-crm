@@ -11,10 +11,12 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material'
+import { useQuery } from '@tanstack/react-query'
 import { useActivities, useCreateActivity, useUpdateActivity, useDeleteActivity } from '../hooks/useActivities'
-import { useCustomers, useCustomer } from '../hooks/useCustomers'
+import { useCustomers } from '../hooks/useCustomers'
 import { useUsers } from '../hooks/useUsers'
 import { getUser } from '../services/authService'
+import contactService from '../services/contactService'
 
 const ACTIVITY_TYPES = [
   { value: 'ZIYARET', label: 'Ziyaret' },
@@ -60,8 +62,11 @@ const emptyForm = {
 }
 
 const ContactAutocomplete = ({ customerId, value, onChange }) => {
-  const { data: customer } = useCustomer(customerId)
-  const contacts = customer?.contacts || []
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['contacts', 'customer', customerId],
+    queryFn: () => contactService.getByCustomer(customerId).then(r => r.data),
+    enabled: !!customerId,
+  })
 
   return (
     <Autocomplete
