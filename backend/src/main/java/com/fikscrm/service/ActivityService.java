@@ -22,16 +22,21 @@ public class ActivityService {
     private final ContactRepository contactRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<ActivityDTO> getAllActivities() {
-        return activityRepository.findAllByOrderByCreatedAtDesc()
+        Long companyId = getCurrentUserCompanyId();
+        return activityRepository.findByCustomer_CompanyIdOrderByCreatedAtDesc(companyId)
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ActivityDTO> getActivitiesByCustomer(Long customerId) {
-        return activityRepository.findByCustomerIdOrderByCreatedAtDesc(customerId)
+        Long companyId = getCurrentUserCompanyId();
+        return activityRepository.findByCustomerIdAndCustomer_CompanyIdOrderByCreatedAtDesc(customerId, companyId)
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ActivityDTO getActivityById(Long id) {
         return mapToDTO(findById(id));
     }
@@ -56,7 +61,7 @@ public class ActivityService {
         }
 
         Activity activity = Activity.builder()
-                .activityNumber("TEMP")
+                .activityNumber(java.util.UUID.randomUUID().toString())
                 .customer(customer)
                 .contact(contact)
                 .activityType(request.getActivityType())
@@ -121,6 +126,13 @@ public class ActivityService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+    }
+
+    private Long getCurrentUserCompanyId() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        return user.getCompany().getId();
     }
 
     private ActivityDTO mapToDTO(Activity a) {
