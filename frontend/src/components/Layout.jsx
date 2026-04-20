@@ -34,6 +34,7 @@ const FiksLogo = () => (
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '◉' },
   { path: '/customers', label: 'Müşteriler', icon: '👥' },
+  { path: '/activities', label: 'Aktiviteler', icon: '◎' },
   { path: '/projects', label: 'Projeler', icon: '≡' },
   { path: '/pipeline', label: 'Pipeline', icon: '▊' },
 ]
