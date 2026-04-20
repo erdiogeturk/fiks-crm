@@ -46,8 +46,11 @@ export const useDeleteActivity = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ id }) => activityService.delete(id),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['activities'] })
+      if (variables.customerId) {
+        queryClient.invalidateQueries({ queryKey: ['activities', 'customer', variables.customerId] })
+      }
     },
   })
 }

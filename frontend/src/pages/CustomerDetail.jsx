@@ -83,6 +83,7 @@ const CustomerDetail = () => {
   const deleteActivityMutation = useDeleteActivity()
 
   const [activityDialogOpen, setActivityDialogOpen] = useState(false)
+  const [deleteActivityConfirmId, setDeleteActivityConfirmId] = useState(null)
   const [activityForm, setActivityForm] = useState({
     activityType: 'ZIYARET',
     name: '',
@@ -169,9 +170,10 @@ const CustomerDetail = () => {
     }
   }
 
-  const handleDeleteActivity = async (activityId) => {
+  const handleDeleteActivity = async () => {
     try {
-      await deleteActivityMutation.mutateAsync({ id: activityId })
+      await deleteActivityMutation.mutateAsync({ id: deleteActivityConfirmId, customerId: customer.id })
+      setDeleteActivityConfirmId(null)
     } catch (error) {
       console.error('Error deleting activity:', error)
     }
@@ -367,7 +369,7 @@ const CustomerDetail = () => {
                       </TableCell>
                       <TableCell align="right">
                         <IconButton size="small" color="error"
-                          onClick={() => handleDeleteActivity(activity.id)}>
+                          onClick={() => setDeleteActivityConfirmId(activity.id)}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -537,6 +539,16 @@ const CustomerDetail = () => {
           <Button variant="contained" onClick={handleCreateProject} disabled={!projectForm.projectName || !projectForm.amount}>
             Oluştur
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!deleteActivityConfirmId} onClose={() => setDeleteActivityConfirmId(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Aktiviteyi Sil</DialogTitle>
+        <DialogContent>
+          <Typography>Bu aktiviteyi silmek istediğinize emin misiniz?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteActivityConfirmId(null)}>İptal</Button>
+          <Button variant="contained" color="error" onClick={handleDeleteActivity}>Sil</Button>
         </DialogActions>
       </Dialog>
     </Box>
