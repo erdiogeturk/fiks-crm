@@ -64,7 +64,7 @@ const emptyForm = {
 const ContactAutocomplete = ({ customerId, value, onChange }) => {
   const { data: contacts = [] } = useQuery({
     queryKey: ['contacts', 'customer', customerId],
-    queryFn: () => contactService.getByCustomer(customerId).then(r => r.data),
+    queryFn: () => contactService.getByCustomer(customerId).then(r => r.data.data),
     enabled: !!customerId,
   })
 
