@@ -16,7 +16,7 @@ import { useActivities, useCreateActivity, useUpdateActivity, useDeleteActivity 
 import { useCustomers } from '../hooks/useCustomers'
 import { useUsers } from '../hooks/useUsers'
 import { getUser } from '../services/authService'
-import contactService from '../services/contactService'
+import { contactService } from '../services/contactService'
 
 const ACTIVITY_TYPES = [
   { value: 'ZIYARET', label: 'Ziyaret' },
