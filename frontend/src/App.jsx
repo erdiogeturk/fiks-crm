@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Box, CircularProgress } from '@mui/material'
 import { getAuthToken } from './services/authService'
@@ -7,11 +7,9 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
-import Projects from './pages/Projects'
-import ProjectDetail from './pages/ProjectDetail'
-import Pipeline from './pages/Pipeline'
 import Activities from './pages/Activities'
 import Layout from './components/Layout'
+import PlaceholderPage from './components/PlaceholderPage'
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -46,16 +44,65 @@ function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="customers" element={<Customers />} />
-        <Route path="customers/:id" element={<CustomerDetail />} />
-        <Route path="activities" element={<Activities />} />
-        <Route path="projects" element={<Projects />} />
-        <Route path="projects/:id" element={<ProjectDetail />} />
-        <Route path="pipeline" element={<Pipeline />} />
+
+        {/* Ana modüller */}
+        <Route path="musteriler" element={<Customers />} />
+        <Route path="musteriler/:id" element={<CustomerDetail />} />
+        <Route path="aktiviteler" element={<Activities />} />
+        <Route path="satis-belgeleri" element={<PlaceholderPage title="Satış Belgeleri" />} />
+        <Route path="urunler" element={<PlaceholderPage title="Ürünler" />} />
+
+        {/* Sistem Yönetimi */}
+        <Route path="sistem/organizasyon" element={<PlaceholderPage title="Organizasyon Yönetimi" />} />
+        <Route path="sistem/roller" element={<PlaceholderPage title="Yetkilendirme/Rol Yönetimi" />} />
+        <Route path="sistem/calisanlar" element={<PlaceholderPage title="Çalışan Yönetimi" />} />
+        <Route path="sistem/kullanicilar" element={<PlaceholderPage title="Kullanıcı Yönetimi" />} />
+
+        {/* Alan Yönetimi */}
+        <Route path="sistem/alan/musteri" element={<PlaceholderPage title="Müşteri Alan Yönetimi" />} />
+        <Route path="sistem/alan/ilgili-kisi" element={<PlaceholderPage title="İlgili Kişi Alan Yönetimi" />} />
+        <Route path="sistem/alan/aktivite" element={<PlaceholderPage title="Aktivite Alan Yönetimi" />} />
+        <Route path="sistem/alan/satis-belgesi" element={<PlaceholderPage title="Satış Belgesi Alan Yönetimi" />} />
+        <Route path="sistem/alan/urun" element={<PlaceholderPage title="Ürün Alan Yönetimi" />} />
+
+        {/* Bakımlı Tablo Yönetimi */}
+        <Route path="sistem/bakimli/ulke" element={<PlaceholderPage title="Ülke Tablosu" />} />
+        <Route path="sistem/bakimli/bolge" element={<PlaceholderPage title="Bölge/Eyalet Tablosu" />} />
+        <Route path="sistem/bakimli/il" element={<PlaceholderPage title="İl/Şehir Tablosu" />} />
+        <Route path="sistem/bakimli/ilce" element={<PlaceholderPage title="İlçe Tablosu" />} />
+        <Route path="sistem/bakimli/pozisyon" element={<PlaceholderPage title="Pozisyon Tablosu" />} />
+        <Route path="sistem/bakimli/birim" element={<PlaceholderPage title="Birim Tablosu" />} />
+        <Route path="sistem/bakimli/para-birimi" element={<PlaceholderPage title="Para Birimi Tablosu" />} />
+        <Route path="sistem/bakimli/urun-fiyat" element={<PlaceholderPage title="Ürün Fiyat Listesi" />} />
+
+        {/* Diğer Sistem modülleri */}
+        <Route path="sistem/onay" element={<PlaceholderPage title="Onay Süreçleri" />} />
+        <Route path="sistem/kur" element={<PlaceholderPage title="Kur Dönüşümleri" />} />
+        <Route path="sistem/liste" element={<PlaceholderPage title="Liste Sınırlamaları" />} />
+        <Route path="sistem/veri/ice" element={<PlaceholderPage title="İçe Aktarım" />} />
+        <Route path="sistem/veri/disa" element={<PlaceholderPage title="Dışa Aktarım" />} />
+        <Route path="sistem/ciktilar/mail" element={<PlaceholderPage title="Mail Gönderimi" />} />
+        <Route path="sistem/ciktilar/bildirim" element={<PlaceholderPage title="Bildirim Gönderimi" />} />
+        <Route path="sistem/ciktilar/raporlar" element={<PlaceholderPage title="Raporlar" />} />
+
+        {/* Eski route redirect'leri (geriye dönük uyumluluk) */}
+        <Route path="customers" element={<Navigate to="/musteriler" replace />} />
+        <Route path="customers/:id" element={<CustomerDetailRedirect />} />
+        <Route path="activities" element={<Navigate to="/aktiviteler" replace />} />
+
+        {/* Kaldırılan modüller — artık kullanılmıyor */}
+        <Route path="projects" element={<Navigate to="/dashboard" replace />} />
+        <Route path="projects/:id" element={<Navigate to="/dashboard" replace />} />
+        <Route path="pipeline" element={<Navigate to="/dashboard" replace />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   )
+}
+
+function CustomerDetailRedirect() {
+  const { id } = useParams()
+  return <Navigate to={`/musteriler/${id}`} replace />
 }
 
 export default App

@@ -8,20 +8,22 @@ import {
   Typography,
   Avatar,
   IconButton,
+  Collapse,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
-import {
-  Menu as MenuIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material'
+import MenuIcon from '@mui/icons-material/Menu'
+import LogoutIcon from '@mui/icons-material/Logout'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { logout, getUser } from '../services/authService'
 import { sidebarGradient, primaryColor } from '../theme'
+import Breadcrumb from './Breadcrumb'
+import { menuConfig } from '../config/menuConfig'
 
-const DRAWER_WIDTH = 220
+const DRAWER_WIDTH = 272
 
 const FiksLogo = () => (
-  <svg viewBox="0 0 117 40" xmlns="http://www.w3.org/2000/svg" style={{ height: 32, width: 'auto', display: 'block' }}>
+  <svg viewBox="0 0 117 40" xmlns="http://www.w3.org/2000/svg" style={{ height: 28, width: 'auto', display: 'block' }}>
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -31,13 +33,135 @@ const FiksLogo = () => (
   </svg>
 )
 
-const menuItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: '◉' },
-  { path: '/customers', label: 'Müşteriler', icon: '👥' },
-  { path: '/activities', label: 'Aktiviteler', icon: '◎' },
-  { path: '/projects', label: 'Projeler', icon: '≡' },
-  { path: '/pipeline', label: 'Pipeline', icon: '▊' },
-]
+const hasActivePath = (item, pathname) => {
+  if (item.path) {
+    return pathname === item.path || pathname.startsWith(item.path + '/')
+  }
+  if (item.children) {
+    return item.children.some(child => hasActivePath(child, pathname))
+  }
+  return false
+}
+
+const getInitialOpenGroups = (items, pathname) => {
+  const open = new Set()
+  const traverse = (items) => {
+    for (const item of items) {
+      if (item.children) {
+        if (hasActivePath(item, pathname)) open.add(item.id)
+        traverse(item.children)
+      }
+    }
+  }
+  traverse(items)
+  return open
+}
+
+const MenuItem = ({ item, depth, openGroups, toggleGroup, onLeafClick }) => {
+  const location = useLocation()
+  const pathname = location.pathname
+  const isLeaf = !item.children
+  const isActive = isLeaf && (pathname === item.path || pathname.startsWith(item.path + '/'))
+  const isOpen = openGroups.has(item.id)
+  const pl = 16 + depth * 14
+
+  if (isLeaf) {
+    return (
+      <Box
+        onClick={() => onLeafClick(item.path)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          pl: `${pl}px`,
+          pr: 1.5,
+          py: depth === 0 ? 1.1 : 0.8,
+          mb: 0.25,
+          borderRadius: '8px',
+          cursor: 'pointer',
+          position: 'relative',
+          bgcolor: isActive ? 'rgba(255,255,255,0.13)' : 'transparent',
+          color: isActive ? '#fff' : depth === 0 ? '#c7d2fe' : 'rgba(199,210,254,0.75)',
+          fontWeight: isActive ? 600 : depth === 0 ? 500 : 400,
+          fontSize: depth === 0 ? '13px' : '12px',
+          transition: 'all 0.15s',
+          '&:hover': {
+            bgcolor: isActive ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.07)',
+            color: '#fff',
+          },
+        }}
+      >
+        {depth > 0 && (
+          <Box
+            sx={{
+              width: 5,
+              height: 5,
+              borderRadius: '50%',
+              flexShrink: 0,
+              bgcolor: isActive ? '#a5b4fc' : 'rgba(199,210,254,0.35)',
+            }}
+          />
+        )}
+        <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+          {item.label}
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box>
+      <Box
+        onClick={() => toggleGroup(item.id)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          pl: `${pl}px`,
+          pr: 1.5,
+          py: depth === 0 ? 1.1 : 0.8,
+          mb: 0.25,
+          borderRadius: '8px',
+          cursor: 'pointer',
+          color: depth === 0 ? '#c7d2fe' : 'rgba(199,210,254,0.7)',
+          fontWeight: depth === 0 ? 600 : 500,
+          fontSize: depth === 0 ? '13px' : '12px',
+          transition: 'all 0.15s',
+          '&:hover': {
+            bgcolor: 'rgba(255,255,255,0.07)',
+            color: '#fff',
+          },
+        }}
+      >
+        <Box sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {item.label}
+        </Box>
+        <ChevronRightIcon
+          sx={{
+            fontSize: 16,
+            color: 'rgba(199,210,254,0.45)',
+            flexShrink: 0,
+            transition: 'transform 0.2s',
+            transform: isOpen ? 'rotate(90deg)' : 'none',
+          }}
+        />
+      </Box>
+      <Collapse in={isOpen} timeout={180}>
+        <Box>
+          {item.children.map(child => (
+            <MenuItem
+              key={child.id}
+              item={child}
+              depth={depth + 1}
+              openGroups={openGroups}
+              toggleGroup={toggleGroup}
+              onLeafClick={onLeafClick}
+            />
+          ))}
+        </Box>
+      </Collapse>
+    </Box>
+  )
+}
 
 const Layout = () => {
   const theme = useTheme()
@@ -47,112 +171,77 @@ const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const user = getUser()
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen)
+  const [openGroups, setOpenGroups] = useState(() =>
+    getInitialOpenGroups(menuConfig, location.pathname)
+  )
+
+  const toggleGroup = (id) => {
+    setOpenGroups(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
   }
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
+  const handleLeafClick = (path) => {
+    navigate(path)
+    if (isMobile) setMobileOpen(false)
   }
+
+  const handleLogout = () => { logout(); navigate('/login') }
 
   const drawer = (
-    <Box
-      sx={{
-        height: '100%',
-        background: sidebarGradient,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ height: '100%', background: sidebarGradient, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <Box sx={{ px: 2.5, pt: 2.5, pb: 1 }}>
         <FiksLogo />
       </Box>
       <Typography
-        variant="caption"
-        sx={{ color: '#a5b4fc', px: 2, mb: 4, fontSize: '11px' }}
+        sx={{
+          color: 'rgba(165,180,252,0.6)',
+          px: 2.5,
+          mb: 2,
+          fontSize: '10px',
+          letterSpacing: '0.8px',
+          textTransform: 'uppercase',
+          fontWeight: 500,
+        }}
       >
-        CRM · Sales Pipeline Manager
+        CRM Sistemi
       </Typography>
-
-      <Box sx={{ flex: 1, px: 1.5 }}>
-        {menuItems.map((item) => (
-          <Box
-            key={item.path}
-            onClick={() => {
-              navigate(item.path)
-              if (isMobile) setMobileOpen(false)
-            }}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.5,
-              px: 1.75,
-              py: 1.5,
-              mb: 0.5,
-              borderRadius: '10px',
-              cursor: 'pointer',
-              bgcolor: location.pathname === item.path ? 'rgba(255,255,255,0.15)' : 'transparent',
-              color: location.pathname === item.path ? '#fff' : '#c7d2fe',
-              fontWeight: location.pathname === item.path ? 600 : 400,
-              fontSize: '14px',
-              transition: 'all 0.2s',
-              '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.1)',
-              },
-            }}
-          >
-            <Box sx={{ fontSize: '16px', width: 22, textAlign: 'center' }}>{item.icon}</Box>
-            <Box>{item.label}</Box>
-            {item.path === '/customers' && (
-              <Box
-                sx={{
-                  ml: 'auto',
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  borderRadius: '10px',
-                  px: 1,
-                  py: 0.25,
-                  fontSize: '11px',
-                  fontWeight: 700,
-                }}
-              >
-                17
-              </Box>
-            )}
-          </Box>
-        ))}
-      </Box>
 
       <Box
         sx={{
-          p: 2,
-          borderTop: '1px solid rgba(255,255,255,0.1)',
+          flex: 1,
+          px: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          '&::-webkit-scrollbar': { width: 4 },
+          '&::-webkit-scrollbar-track': { background: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: 2 },
         }}
       >
+        {menuConfig.map(item => (
+          <MenuItem
+            key={item.id}
+            item={item}
+            depth={0}
+            openGroups={openGroups}
+            toggleGroup={toggleGroup}
+            onLeafClick={handleLeafClick}
+          />
+        ))}
+      </Box>
+
+      <Box sx={{ p: 2, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-          <Avatar
-            sx={{
-              bgcolor: primaryColor,
-              width: 32,
-              height: 32,
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
+          <Avatar sx={{ bgcolor: primaryColor, width: 32, height: 32, fontSize: 12, fontWeight: 700 }}>
             {user?.firstName?.[0]}{user?.lastName?.[0]}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              sx={{
-                color: 'white',
-                fontSize: 13,
-                fontWeight: 600,
-                lineHeight: 1.2,
-              }}
-            >
+            <Typography sx={{ color: 'white', fontSize: 13, fontWeight: 600, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user?.firstName} {user?.lastName}
             </Typography>
-            <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: 11 }}>
+            <Typography sx={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
               {user?.role?.replace('_', ' ')}
             </Typography>
           </Box>
@@ -160,19 +249,13 @@ const Layout = () => {
         <Box
           onClick={handleLogout}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            px: 1.75,
-            py: 1,
-            borderRadius: '8px',
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.7)',
-            fontSize: 13,
-            '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' },
+            display: 'flex', alignItems: 'center', gap: 1.5,
+            px: 1.5, py: 0.875, borderRadius: '8px', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.6)', fontSize: 13,
+            '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.9)' },
           }}
         >
-          <LogoutIcon sx={{ fontSize: 18 }} />
+          <LogoutIcon sx={{ fontSize: 17 }} />
           <Box>Çıkış Yap</Box>
         </Box>
       </Box>
@@ -194,20 +277,10 @@ const Layout = () => {
         }}
       >
         <Toolbar>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, color: 'text.primary' }}
-          >
+          <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(!mobileOpen)} sx={{ mr: 2, color: 'text.primary' }}>
             <MenuIcon />
           </IconButton>
-          <Typography
-            variant="h6"
-            noWrap
-            component="div"
-            sx={{ color: 'text.primary', fontWeight: 600 }}
-          >
+          <Typography variant="h6" noWrap sx={{ color: 'text.primary', fontWeight: 600 }}>
             FiksCRM
           </Typography>
         </Toolbar>
@@ -217,15 +290,11 @@ const Layout = () => {
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={handleDrawerToggle}
+          onClose={() => setMobileOpen(false)}
           ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-              border: 'none',
-            },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH, border: 'none' },
           }}
         >
           {drawer}
@@ -234,11 +303,7 @@ const Layout = () => {
           variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: DRAWER_WIDTH,
-              border: 'none',
-            },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH, border: 'none' },
           }}
           open
         >
@@ -254,8 +319,10 @@ const Layout = () => {
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           bgcolor: 'background.default',
           minHeight: '100vh',
+          mt: { xs: 8, md: 0 },
         }}
       >
+        <Breadcrumb />
         <Outlet />
       </Box>
     </Box>
