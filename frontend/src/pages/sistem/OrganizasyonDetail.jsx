@@ -3,11 +3,16 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box, Typography, Button, TextField, Paper, Grid, Chip,
   FormControl, InputLabel, Select, MenuItem, CircularProgress,
-  Alert, Tabs, Tab, Divider, Tooltip,
+  Alert, Tabs, Tab, Tooltip, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, IconButton, Dialog,
+  DialogTitle, DialogContent, DialogActions,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { useOrganization, useOrganizations } from '../../hooks/useOrganizations'
+import { useEmployees, useOrgTeam } from '../../hooks/useEmployees'
 import { formatDate } from '../../utils/formatDate'
 
 const STATUS_OPTIONS = ['Taslak', 'Aktif', 'Pasif']
@@ -26,6 +31,123 @@ const Field = ({ label, value, children }) => (
     {children || <Typography sx={{ fontSize: 14, color: value ? 'text.primary' : 'text.disabled' }}>{value || '—'}</Typography>}
   </Box>
 )
+
+const EkipTab = ({ orgId }) => {
+  const { team, addMember, removeMember } = useOrgTeam(orgId)
+  const { active } = useEmployees()
+  const [modal, setModal]     = useState(false)
+  const [empId, setEmpId]     = useState('')
+  const [teamRole, setTeamRole] = useState('')
+  const [joinedAt, setJoinedAt] = useState('')
+  const [removeId, setRemoveId] = useState(null)
+  const [addError, setAddError] = useState(null)
+
+  const handleAdd = async () => {
+    setAddError(null)
+    try {
+      await addMember.mutateAsync({ employeeId: Number(empId), teamRole: teamRole || null, joinedAt: joinedAt || null })
+      setModal(false); setEmpId(''); setTeamRole(''); setJoinedAt('')
+    } catch (err) {
+      setAddError(err?.response?.data?.message || 'Ekip üyesi eklenemedi.')
+    }
+  }
+
+  const handleRemove = async () => {
+    await removeMember.mutateAsync(removeId)
+    setRemoveId(null)
+  }
+
+  // employees already in team
+  const teamEmpIds = new Set((team.data || []).map(m => m.employeeId))
+  const available = (active.data || []).filter(e => !teamEmpIds.has(e.id))
+
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+        <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={() => { setAddError(null); setModal(true) }}>
+          Ekip Üyesi Ekle
+        </Button>
+      </Box>
+
+      {team.isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={24} /></Box>
+      ) : (team.data || []).length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4, color: 'text.disabled' }}>
+          <Typography variant="body2">Ekipte henüz kimse yok.</Typography>
+        </Box>
+      ) : (
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Ad Soyad</TableCell>
+                <TableCell>Unvan</TableCell>
+                <TableCell>Departman</TableCell>
+                <TableCell>E-posta</TableCell>
+                <TableCell>Ekip Rolü</TableCell>
+                <TableCell>Katılım Tarihi</TableCell>
+                <TableCell align="right" />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(team.data || []).map(m => (
+                <TableRow key={m.id} hover>
+                  <TableCell sx={{ fontWeight: 500 }}>{m.employeeFullName}</TableCell>
+                  <TableCell>{m.employeeTitle || '—'}</TableCell>
+                  <TableCell>{m.employeeDepartment || '—'}</TableCell>
+                  <TableCell sx={{ fontSize: 12 }}>{m.employeeEmail || '—'}</TableCell>
+                  <TableCell>{m.teamRole || '—'}</TableCell>
+                  <TableCell sx={{ fontSize: 12 }}>{formatDate(m.joinedAt) || '—'}</TableCell>
+                  <TableCell align="right">
+                    <Tooltip title="Çıkar">
+                      <IconButton size="small" color="error" onClick={() => setRemoveId(m.id)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Add member dialog */}
+      <Dialog open={modal} onClose={() => setModal(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Ekip Üyesi Ekle</DialogTitle>
+        <DialogContent sx={{ pt: '12px !important', display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <FormControl fullWidth size="small" required>
+            <InputLabel>Çalışan</InputLabel>
+            <Select value={empId} label="Çalışan" onChange={e => setEmpId(e.target.value)}>
+              {available.map(e => <MenuItem key={e.id} value={e.id}>{e.fullName}{e.title ? ` — ${e.title}` : ''}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <TextField label="Ekip Rolü" value={teamRole} onChange={e => setTeamRole(e.target.value)} size="small" fullWidth />
+          <TextField label="Katılım Tarihi" type="date" value={joinedAt} onChange={e => setJoinedAt(e.target.value)} size="small" fullWidth InputLabelProps={{ shrink: true }} />
+          {addError && <Alert severity="error">{addError}</Alert>}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setModal(false)} variant="outlined" color="inherit" size="small">İptal</Button>
+          <Button onClick={handleAdd} variant="contained" size="small" disabled={!empId || addMember.isPending}>
+            {addMember.isPending ? <CircularProgress size={16} /> : 'Ekle'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Remove confirm */}
+      <Dialog open={!!removeId} onClose={() => setRemoveId(null)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700 }}>Ekipten Çıkar</DialogTitle>
+        <DialogContent><Typography>Bu çalışanı ekipten çıkarmak istiyor musunuz?</Typography></DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setRemoveId(null)} variant="outlined" color="inherit" size="small">İptal</Button>
+          <Button onClick={handleRemove} variant="contained" color="error" size="small" disabled={removeMember.isPending}>
+            {removeMember.isPending ? <CircularProgress size={16} /> : 'Çıkar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
 
 const OrganizasyonDetail = () => {
   const { id } = useParams()
@@ -193,11 +315,7 @@ const OrganizasyonDetail = () => {
       </Box>
 
       <Paper sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderTop: 'none', boxShadow: 'none', minHeight: 160 }}>
-        {activeTab === 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 120, color: 'text.disabled' }}>
-            <Typography variant="body2">Ekip yönetimi Çalışan modülü tamamlandıktan sonra aktif edilecektir.</Typography>
-          </Box>
-        )}
+        {activeTab === 0 && <EkipTab orgId={Number(id)} />}
       </Paper>
 
       {/* Fixed Save button (bottom-right) — only in edit mode */}
