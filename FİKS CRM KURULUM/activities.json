@@ -1,9 +1,0 @@
-[{"id":1,"project_id":1,"type":"Toplantı","note":"İlk görüşme yapıldı","date":"2026-03-01","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":2,"project_id":1,"type":"Teklif","note":"Danışman kadrosu hazırlandı","date":"2026-03-10","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":3,"project_id":2,"type":"Sunum","note":"Çözüm sunumu tamamlandı","date":"2026-02-15","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":4,"project_id":3,"type":"Toplantı","note":"RFP alındı","date":"2026-01-10","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":5,"project_id":3,"type":"Teklif","note":"Teklif sunuldu","date":"2026-02-01","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":6,"project_id":3,"type":"Kazanım","note":"Proje kazanıldı!","date":"2026-02-20","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":7,"project_id":4,"type":"Teklif","note":"Executive summary sunuldu","date":"2026-02-20","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":8,"project_id":5,"type":"Kazanım","note":"Sözleşme imzalandı","date":"2026-02-28","created_at":"2026-03-18T09:25:18.014825+00:00"}, 
- {"id":9,"project_id":6,"type":"Lead","note":"Fuarda ilk temas","date":"2026-03-05","created_at":"2026-03-18T09:25:18.014825+00:00"}]

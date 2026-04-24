@@ -43,7 +43,13 @@
       "Bash(git *)",
       "Bash(sed -n '25,40p' /Users/ersinozdemir/FIKS-AI/FiksCrm/backend/src/main/java/com/fikscrm/service/ActivityService.java)",
       "Bash(sed -n '55,75p' /Users/ersinozdemir/FIKS-AI/FiksCrm/backend/src/main/java/com/fikscrm/service/ActivityService.java)",
-      "Bash(sed -n '120,160p' /Users/ersinozdemir/FIKS-AI/FiksCrm/backend/src/main/java/com/fikscrm/service/ActivityService.java)"
+      "Bash(sed -n '120,160p' /Users/ersinozdemir/FIKS-AI/FiksCrm/backend/src/main/java/com/fikscrm/service/ActivityService.java)",
+      "Bash(xargs cat *)",
+      "Bash(curl -s http://localhost:5173)",
+      "Bash(node *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(python3 -c ' *)",
+      "Bash(xargs ls *)"
     ]
   }
 }

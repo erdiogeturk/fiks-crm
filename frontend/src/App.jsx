@@ -10,6 +10,13 @@ import CustomerDetail from './pages/CustomerDetail'
 import Activities from './pages/Activities'
 import Layout from './components/Layout'
 import PlaceholderPage from './components/PlaceholderPage'
+import UlkePage from './pages/bakimli/UlkePage'
+import BolgePage from './pages/bakimli/BolgePage'
+import IlPage from './pages/bakimli/IlPage'
+import IlcePage from './pages/bakimli/IlcePage'
+import PozisyonPage from './pages/bakimli/PozisyonPage'
+import BirimPage from './pages/bakimli/BirimPage'
+import ParaBirimiPage from './pages/bakimli/ParaBirimiPage'
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -66,13 +73,13 @@ function App() {
         <Route path="sistem/alan/urun" element={<PlaceholderPage title="Ürün Alan Yönetimi" />} />
 
         {/* Bakımlı Tablo Yönetimi */}
-        <Route path="sistem/bakimli/ulke" element={<PlaceholderPage title="Ülke Tablosu" />} />
-        <Route path="sistem/bakimli/bolge" element={<PlaceholderPage title="Bölge/Eyalet Tablosu" />} />
-        <Route path="sistem/bakimli/il" element={<PlaceholderPage title="İl/Şehir Tablosu" />} />
-        <Route path="sistem/bakimli/ilce" element={<PlaceholderPage title="İlçe Tablosu" />} />
-        <Route path="sistem/bakimli/pozisyon" element={<PlaceholderPage title="Pozisyon Tablosu" />} />
-        <Route path="sistem/bakimli/birim" element={<PlaceholderPage title="Birim Tablosu" />} />
-        <Route path="sistem/bakimli/para-birimi" element={<PlaceholderPage title="Para Birimi Tablosu" />} />
+        <Route path="sistem/bakimli/ulke"       element={<UlkePage />} />
+        <Route path="sistem/bakimli/bolge"      element={<BolgePage />} />
+        <Route path="sistem/bakimli/il"         element={<IlPage />} />
+        <Route path="sistem/bakimli/ilce"       element={<IlcePage />} />
+        <Route path="sistem/bakimli/pozisyon"   element={<PozisyonPage />} />
+        <Route path="sistem/bakimli/birim"      element={<BirimPage />} />
+        <Route path="sistem/bakimli/para-birimi" element={<ParaBirimiPage />} />
         <Route path="sistem/bakimli/urun-fiyat" element={<PlaceholderPage title="Ürün Fiyat Listesi" />} />
 
         {/* Diğer Sistem modülleri */}
