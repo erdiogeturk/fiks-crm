@@ -24,6 +24,11 @@ import CalisanDetail from './pages/sistem/CalisanDetail'
 import KullaniciPage from './pages/sistem/KullaniciPage'
 import KullaniciDetail from './pages/sistem/KullaniciDetail'
 import RolPage from './pages/sistem/RolPage'
+import MusteriAlanPage      from './pages/sistem/alan/MusteriAlanPage'
+import IlgiliKisiAlanPage   from './pages/sistem/alan/IlgiliKisiAlanPage'
+import AktiviteAlanPage     from './pages/sistem/alan/AktiviteAlanPage'
+import SatisBelgesiAlanPage from './pages/sistem/alan/SatisBelgesiAlanPage'
+import UrunAlanPage         from './pages/sistem/alan/UrunAlanPage'
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -76,11 +81,11 @@ function App() {
         <Route path="sistem/kullanicilar/:id" element={<KullaniciDetail />} />
 
         {/* Alan Yönetimi */}
-        <Route path="sistem/alan/musteri" element={<PlaceholderPage title="Müşteri Alan Yönetimi" />} />
-        <Route path="sistem/alan/ilgili-kisi" element={<PlaceholderPage title="İlgili Kişi Alan Yönetimi" />} />
-        <Route path="sistem/alan/aktivite" element={<PlaceholderPage title="Aktivite Alan Yönetimi" />} />
-        <Route path="sistem/alan/satis-belgesi" element={<PlaceholderPage title="Satış Belgesi Alan Yönetimi" />} />
-        <Route path="sistem/alan/urun" element={<PlaceholderPage title="Ürün Alan Yönetimi" />} />
+        <Route path="sistem/alan/musteri"       element={<MusteriAlanPage />} />
+        <Route path="sistem/alan/ilgili-kisi"   element={<IlgiliKisiAlanPage />} />
+        <Route path="sistem/alan/aktivite"      element={<AktiviteAlanPage />} />
+        <Route path="sistem/alan/satis-belgesi" element={<SatisBelgesiAlanPage />} />
+        <Route path="sistem/alan/urun"          element={<UrunAlanPage />} />
 
         {/* Bakımlı Tablo Yönetimi */}
         <Route path="sistem/bakimli/ulke"       element={<UlkePage />} />
