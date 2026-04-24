@@ -5,8 +5,14 @@ import { menuConfig } from '../config/menuConfig'
 
 const findBreadcrumbs = (items, pathname, ancestors = []) => {
   for (const item of items) {
-    if (item.path && (pathname === item.path || pathname.startsWith(item.path + '/'))) {
-      return [...ancestors, { label: item.label, path: item.path }]
+    if (item.path) {
+      if (pathname === item.path) {
+        return [...ancestors, { label: item.label, path: item.path }]
+      }
+      // Match prefix for nested routes (e.g. /sistem/organizasyon/123)
+      if (pathname.startsWith(item.path + '/')) {
+        return [...ancestors, { label: item.label, path: item.path }]
+      }
     }
     if (item.children) {
       const result = findBreadcrumbs(
