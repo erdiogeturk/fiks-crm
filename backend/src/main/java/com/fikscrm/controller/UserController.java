@@ -3,6 +3,7 @@ package com.fikscrm.controller;
 import com.fikscrm.dto.ApiResponse;
 import com.fikscrm.dto.UserDTO;
 import com.fikscrm.dto.UserRequest;
+import com.fikscrm.entity.RoleType;
 import com.fikscrm.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -48,5 +50,15 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @GetMapping("/by-role/{role}")
+    public ResponseEntity<ApiResponse<List<UserDTO>>> getByRole(@PathVariable RoleType role) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getByRole(role)));
+    }
+
+    @GetMapping("/roles/summary")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> getRoleSummary() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getRoleSummary()));
     }
 }

@@ -9,4 +9,6 @@ export const userService = {
   update:        (id, data)   => api.put(`${BASE}/${id}`, data),
   toggleEnabled: (id)         => api.patch(`${BASE}/${id}/toggle-enabled`),
   remove:        (id)         => api.delete(`${BASE}/${id}`),
+  getByRole:     (role)       => api.get(`${BASE}/by-role/${role}`),
+  getRoleSummary:()           => api.get(`${BASE}/roles/summary`),
 }

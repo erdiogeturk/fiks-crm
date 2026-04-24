@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -97,6 +98,18 @@ public class UserService {
     @Transactional
     public void delete(Long id) {
         userRepo.delete(find(id));
+    }
+
+    public List<UserDTO> getByRole(RoleType role) {
+        return userRepo.findAllByCompanyIdAndRoleOrderByLastNameAscFirstNameAsc(companyId(), role)
+                .stream().map(this::toDTO).toList();
+    }
+
+    public Map<String, Long> getRoleSummary() {
+        Map<String, Long> summary = new java.util.LinkedHashMap<>();
+        userRepo.countByRoleForCompany(companyId())
+                .forEach(row -> summary.put(((RoleType) row[0]).name(), (Long) row[1]));
+        return summary;
     }
 
     private User find(Long id) {

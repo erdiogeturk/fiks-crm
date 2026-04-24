@@ -39,3 +39,16 @@ export const useUser = (id) =>
     queryFn: () => userService.getById(id).then(r => r.data.data),
     enabled: !!id,
   })
+
+export const useRoleSummary = () =>
+  useQuery({
+    queryKey: ['users', 'roles', 'summary'],
+    queryFn: () => userService.getRoleSummary().then(r => r.data.data),
+  })
+
+export const useUsersByRole = (role) =>
+  useQuery({
+    queryKey: ['users', 'by-role', role],
+    queryFn: () => userService.getByRole(role).then(r => r.data.data),
+    enabled: !!role,
+  })
