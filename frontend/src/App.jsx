@@ -21,6 +21,8 @@ import OrganizasyonPage from './pages/sistem/OrganizasyonPage'
 import OrganizasyonDetail from './pages/sistem/OrganizasyonDetail'
 import CalisanPage from './pages/sistem/CalisanPage'
 import CalisanDetail from './pages/sistem/CalisanDetail'
+import KullaniciPage from './pages/sistem/KullaniciPage'
+import KullaniciDetail from './pages/sistem/KullaniciDetail'
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -69,7 +71,8 @@ function App() {
         <Route path="sistem/roller" element={<PlaceholderPage title="Yetkilendirme/Rol Yönetimi" />} />
         <Route path="sistem/calisanlar" element={<CalisanPage />} />
         <Route path="sistem/calisanlar/:id" element={<CalisanDetail />} />
-        <Route path="sistem/kullanicilar" element={<PlaceholderPage title="Kullanıcı Yönetimi" />} />
+        <Route path="sistem/kullanicilar" element={<KullaniciPage />} />
+        <Route path="sistem/kullanicilar/:id" element={<KullaniciDetail />} />
 
         {/* Alan Yönetimi */}
         <Route path="sistem/alan/musteri" element={<PlaceholderPage title="Müşteri Alan Yönetimi" />} />

@@ -11,8 +11,7 @@ export const employeeService = {
   update:    (id, data)   => api.put(`${BASE}/${id}`, data),
   remove:    (id)         => api.delete(`${BASE}/${id}`),
 
-  // Org team
-  getTeam:      (orgId)           => api.get(`/organizations/${orgId}/team`),
-  addTeamMember:(orgId, data)     => api.post(`/organizations/${orgId}/team`, data),
+  getTeam:         (orgId)           => api.get(`/organizations/${orgId}/team`),
+  addTeamMember:   (orgId, data)     => api.post(`/organizations/${orgId}/team`, data),
   removeTeamMember:(orgId, memberId) => api.delete(`/organizations/${orgId}/team/${memberId}`),
 }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/organizations/{orgId}/team")
+@RequestMapping("/organizations/{orgId}/team")
 @RequiredArgsConstructor
 public class OrgTeamMemberController {
 

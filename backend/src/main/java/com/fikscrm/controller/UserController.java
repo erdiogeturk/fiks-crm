@@ -2,38 +2,51 @@ package com.fikscrm.controller;
 
 import com.fikscrm.dto.ApiResponse;
 import com.fikscrm.dto.UserDTO;
-import com.fikscrm.entity.User;
-import com.fikscrm.repository.UserRepository;
+import com.fikscrm.dto.UserRequest;
+import com.fikscrm.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserDTO>>> getAllUsers() {
-        List<UserDTO> users = userRepository.findAll()
-                .stream()
-                .filter(User::isEnabled)
-                .map(u -> UserDTO.builder()
-                        .id(u.getId())
-                        .username(u.getUsername())
-                        .firstName(u.getFirstName())
-                        .lastName(u.getLastName())
-                        .email(u.getEmail())
-                        .role(u.getRole())
-                        .build())
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(users));
+    public ResponseEntity<ApiResponse<List<UserDTO>>> getAll() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getAll()));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserDTO>> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getById(id)));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<UserDTO>> create(@Valid @RequestBody UserRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userService.create(req)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserDTO>> update(@PathVariable Long id, @Valid @RequestBody UserRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(userService.update(id, req)));
+    }
+
+    @PatchMapping("/{id}/toggle-enabled")
+    public ResponseEntity<ApiResponse<UserDTO>> toggleEnabled(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(userService.toggleEnabled(id)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
