@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box, Card, CardContent, Typography, TextField, InputAdornment,
   Button, Table, TableBody, TableCell, TableContainer, TableHead,
@@ -85,10 +86,12 @@ const ContactAutocomplete = ({ customerId, value, onChange }) => {
 }
 
 const Activities = () => {
+  const navigate = useNavigate()
   const currentUser = getUser()
   const { data: activities, isLoading } = useActivities()
   const { data: customers = [] } = useCustomers()
-  const { data: users = [] } = useUsers()
+  const { list: usersQuery } = useUsers()
+  const users = usersQuery.data || []
   const createActivity = useCreateActivity()
   const updateActivity = useUpdateActivity()
   const deleteActivity = useDeleteActivity()
@@ -211,6 +214,7 @@ const Activities = () => {
                 <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Durum</TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Sorumlu</TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Kapanış</TableCell>
+                <TableCell sx={{ fontWeight: 600, fontSize: 12 }}>Oluşturma</TableCell>
                 <TableCell sx={{ fontWeight: 600, fontSize: 12 }} align="right">İşlem</TableCell>
               </TableRow>
             </TableHead>
@@ -218,7 +222,7 @@ const Activities = () => {
               {isLoading
                 ? Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 8 }).map((_, j) => (
+                      {Array.from({ length: 9 }).map((_, j) => (
                         <TableCell key={j}><Skeleton /></TableCell>
                       ))}
                     </TableRow>
@@ -227,7 +231,8 @@ const Activities = () => {
                     const sc = statusConfig[activity.status] || { label: activity.status, color: '#6b7280', bg: '#f3f4f6' }
                     const tc = typeConfig[activity.activityType] || { label: activity.activityType, color: '#6b7280', bg: '#f3f4f6' }
                     return (
-                      <TableRow key={activity.id} hover>
+                      <TableRow key={activity.id} hover sx={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/aktiviteler/${activity.id}`)}>
                         <TableCell sx={{ fontSize: 12, fontWeight: 600, color: 'primary.main' }}>
                           {activity.activityNumber}
                         </TableCell>
@@ -243,7 +248,8 @@ const Activities = () => {
                         </TableCell>
                         <TableCell sx={{ fontSize: 12 }}>{activity.responsibleUserName || '-'}</TableCell>
                         <TableCell sx={{ fontSize: 12 }}>{formatDate(activity.closeDate)}</TableCell>
-                        <TableCell align="right">
+                        <TableCell sx={{ fontSize: 12 }}>{formatDate(activity.createdAt)}</TableCell>
+                        <TableCell align="right" onClick={e => e.stopPropagation()}>
                           <IconButton size="small" onClick={() => openEdit(activity)}>
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -257,7 +263,7 @@ const Activities = () => {
               }
               {!isLoading && filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                     Aktivite bulunamadı
                   </TableCell>
                 </TableRow>

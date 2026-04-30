@@ -4,7 +4,6 @@ import com.fikscrm.dto.ColumnInfoDTO;
 import com.fikscrm.dto.CustomFieldPreviewDTO;
 import com.fikscrm.dto.CustomFieldRequest;
 import com.fikscrm.entity.Company;
-import com.fikscrm.entity.CrmEntityType;
 import com.fikscrm.entity.CustomField;
 import com.fikscrm.exception.ResourceNotFoundException;
 import com.fikscrm.repository.CustomFieldRepository;
@@ -31,9 +30,8 @@ public class CustomFieldService {
 
     // ── Column listing (DB introspection + metadata merge) ─────────────────
 
-    public List<ColumnInfoDTO> getColumns(String entityTypeName) {
-        CrmEntityType entityType = CrmEntityType.valueOf(entityTypeName);
-        String tableName = entityType.getTableName();
+    public List<ColumnInfoDTO> getColumns(String tableName) {
+        validateTableExists(tableName);
 
         List<Object[]> dbCols = em.createNativeQuery(
             "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE, COLUMN_DEFAULT, ORDINAL_POSITION " +
@@ -43,7 +41,7 @@ public class CustomFieldService {
         ).setParameter("tbl", tableName).getResultList();
 
         Map<String, CustomField> metaMap = customFieldRepo
-            .findAllByCompanyIdAndEntityTypeOrderBySortOrderAscCreatedAtAsc(companyId(), entityTypeName)
+            .findAllByCompanyIdAndEntityTypeOrderBySortOrderAscCreatedAtAsc(companyId(), tableName)
             .stream().collect(Collectors.toMap(CustomField::getColumnName, cf -> cf));
 
         List<ColumnInfoDTO> result = new ArrayList<>();
@@ -75,9 +73,8 @@ public class CustomFieldService {
 
     // ── Preview (no DB changes) ────────────────────────────────────────────
 
-    public CustomFieldPreviewDTO preview(String entityTypeName, CustomFieldRequest req) {
-        CrmEntityType entityType = CrmEntityType.valueOf(entityTypeName);
-        String tableName  = entityType.getTableName();
+    public CustomFieldPreviewDTO preview(String tableName, CustomFieldRequest req) {
+        validateTableExists(tableName);
         String columnName = "cf_" + req.getFieldName();
         boolean nullable  = req.getNullable() == null || req.getNullable();
 
@@ -86,8 +83,8 @@ public class CustomFieldService {
         boolean exists  = columnExists(tableName, columnName);
 
         return CustomFieldPreviewDTO.builder()
-            .entityType(entityTypeName)
-            .entityLabel(entityType.getLabel())
+            .entityType(tableName)
+            .entityLabel(toDisplayLabel(tableName))
             .tableName(tableName)
             .label(req.getLabel())
             .columnName(columnName)
@@ -104,14 +101,13 @@ public class CustomFieldService {
 
     // ── Apply (DDL + metadata save) ────────────────────────────────────────
 
-    public ColumnInfoDTO apply(String entityTypeName, CustomFieldRequest req) {
-        CrmEntityType entityType = CrmEntityType.valueOf(entityTypeName);
-        String tableName  = entityType.getTableName();
+    public ColumnInfoDTO apply(String tableName, CustomFieldRequest req) {
+        validateTableExists(tableName);
         String columnName = "cf_" + req.getFieldName();
         boolean nullable  = req.getNullable() == null || req.getNullable();
         Long cid = companyId();
 
-        if (customFieldRepo.existsByCompanyIdAndEntityTypeAndColumnName(cid, entityTypeName, columnName)) {
+        if (customFieldRepo.existsByCompanyIdAndEntityTypeAndColumnName(cid, tableName, columnName)) {
             throw new IllegalArgumentException("Bu alan zaten tanımlı: " + columnName);
         }
 
@@ -132,7 +128,7 @@ public class CustomFieldService {
             ? String.join(",", req.getSelectOptions()) : null;
 
         CustomField cf = CustomField.builder()
-            .entityType(entityTypeName)
+            .entityType(tableName)
             .tableName(tableName)
             .columnName(columnName)
             .label(req.getLabel())
@@ -172,6 +168,23 @@ public class CustomFieldService {
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
+
+    private void validateTableExists(String tableName) {
+        Number count = (Number) em.createNativeQuery(
+            "SELECT COUNT(*) FROM information_schema.TABLES " +
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = :tbl"
+        ).setParameter("tbl", tableName).getSingleResult();
+        if (count.longValue() == 0) {
+            throw new IllegalArgumentException("Tablo bulunamadı: " + tableName);
+        }
+    }
+
+    private String toDisplayLabel(String tableName) {
+        return Arrays.stream(tableName.split("_"))
+            .filter(w -> !w.isEmpty())
+            .map(w -> Character.toUpperCase(w.charAt(0)) + w.substring(1))
+            .collect(Collectors.joining(" "));
+    }
 
     private String resolveDbType(CustomFieldRequest req) {
         int len = req.getFieldLength() != null ? req.getFieldLength() : 255;

@@ -49,7 +49,32 @@
       "Bash(node *)",
       "Bash(pkill -f \"vite\")",
       "Bash(python3 -c ' *)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(./mvnw compile *)",
+      "Bash(mvn compile *)",
+      "Bash(j21)",
+      "Bash(curl -s http://localhost:8080/api/products -H \"Authorization: Bearer $\\(curl -s -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(curl -s http://localhost:8080/api/products -H 'Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTc3NzA2MDQzMCwiZXhwIjoxNzc3MTQ2ODMwfQ.-6RCAOAtTdQsq3Isquke9Xjw3nVngqpjKDNOGrsBR-ZoVT0KUdVt55a1Opjukrr_')",
+      "Bash(kill 55595)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(curl -s http://localhost:5174)",
+      "Bash(python3 -c \"import sys,json; [print\\(t['tableName'], '->', t['displayName']\\) for t in json.load\\(sys.stdin\\)['data']]\")",
+      "Bash(python3 -c \"import sys,json; [print\\(t['tableName'].ljust\\(30\\), t['displayName']\\) for t in json.load\\(sys.stdin\\)['data']]\")",
+      "Bash(curl *)",
+      "Bash(grep -n \"schemaTables.map\\\\|computedMenu\\\\|alan-\\\\`\" /Users/ersinozdemir/FIKS-AI/FiksCrm/frontend/src/components/Layout.jsx)",
+      "Bash(wait)",
+      "Bash(python3 -c \"import sys,json; [print\\(\\('🔧' if t['maintenance'] else '📋'\\), t['tableName'].ljust\\(30\\), t['displayName']\\) for t in json.load\\(sys.stdin\\)['data']]\")",
+      "Bash(lsof -ti:8080)",
+      "Bash(lsof *)",
+      "Bash(xargs kill *)",
+      "Bash(nohup mvn *)",
+      "Bash(pkill -f \"spring-boot:run\")",
+      "Bash(ps -p 17662 -o pid,command)",
+      "Bash(ps -p 15930 -o pid,command)",
+      "Bash(kill 17662)",
+      "Bash(echo \"Frontend PID: $!\")",
+      "Bash(pkill -f \"com.fikscrm.FiksCrmApplication\")",
+      "Bash(kill 33579)"
     ]
   }
 }

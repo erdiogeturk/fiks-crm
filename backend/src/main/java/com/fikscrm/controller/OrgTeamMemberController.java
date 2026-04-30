@@ -32,6 +32,21 @@ public class OrgTeamMemberController {
                 .body(ApiResponse.success(teamService.addMember(orgId, req)));
     }
 
+    @GetMapping("/{memberId}")
+    public ResponseEntity<ApiResponse<OrgTeamMemberDTO>> getMember(
+            @PathVariable Long orgId,
+            @PathVariable Long memberId) {
+        return ResponseEntity.ok(ApiResponse.success(teamService.getById(orgId, memberId)));
+    }
+
+    @PutMapping("/{memberId}")
+    public ResponseEntity<ApiResponse<OrgTeamMemberDTO>> updateMember(
+            @PathVariable Long orgId,
+            @PathVariable Long memberId,
+            @Valid @RequestBody OrgTeamMemberRequest req) {
+        return ResponseEntity.ok(ApiResponse.success(teamService.update(orgId, memberId, req)));
+    }
+
     @DeleteMapping("/{memberId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long orgId,

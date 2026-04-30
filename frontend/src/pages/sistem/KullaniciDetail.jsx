@@ -8,25 +8,29 @@ import {
 import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useUser, useUsers } from '../../hooks/useUsers'
+import { useRoles } from '../../hooks/useRoles'
 import { formatDate } from '../../utils/formatDate'
 
-const ROLE_OPTIONS = [
-  { value: 'COMPANY_ADMIN', label: 'Şirket Yöneticisi' },
-  { value: 'SALES_PERSON',  label: 'Satış Temsilcisi' },
-  { value: 'READ_ONLY',     label: 'Salt Okunur' },
-]
-
-const roleLabel = (role) => ROLE_OPTIONS.find(r => r.value === role)?.label || role
-
-const roleColor = {
-  COMPANY_ADMIN: { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  SALES_PERSON:  { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0' },
-  READ_ONLY:     { bg: '#f8fafc', color: '#64748b', border: '#e2e8f0' },
+const SYSTEM_COLORS = {
+  SUPER_ADMIN:   { color: '#7c3aed', bg: '#ede9fe', border: '#c4b5fd' },
+  COMPANY_ADMIN: { color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  SALES_PERSON:  { color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
+  READ_ONLY:     { color: '#64748b', bg: '#f8fafc', border: '#e2e8f0' },
 }
+const CUSTOM_PALETTE = [
+  { color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+  { color: '#be185d', bg: '#fdf2f8', border: '#f9a8d4' },
+  { color: '#0f766e', bg: '#f0fdfa', border: '#99f6e4' },
+  { color: '#c2410c', bg: '#fff7ed', border: '#fed7aa' },
+  { color: '#4338ca', bg: '#eef2ff', border: '#c7d2fe' },
+]
+const getRoleColors = (name, index) => SYSTEM_COLORS[name] ?? CUSTOM_PALETTE[index % CUSTOM_PALETTE.length]
 
-const RoleChip = ({ role }) => {
-  const c = roleColor[role] || roleColor.READ_ONLY
-  return <Chip label={roleLabel(role)} size="small" sx={{ bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 11, border: `1px solid ${c.border}` }} />
+const RoleChip = ({ role, roles = [] }) => {
+  const idx   = roles.findIndex(r => r.name === role)
+  const label = idx >= 0 ? roles[idx].label : role
+  const c     = getRoleColors(role, idx >= 0 ? idx : 0)
+  return <Chip label={label} size="small" sx={{ bgcolor: c.bg, color: c.color, fontWeight: 600, fontSize: 11, border: `1px solid ${c.border}` }} />
 }
 
 const Field = ({ label, value, children }) => (
@@ -43,6 +47,7 @@ const KullaniciDetail = () => {
   const navigate = useNavigate()
   const { data: user, isLoading, isError, error } = useUser(id)
   const { update } = useUsers()
+  const { data: roles = [] } = useRoles()
 
   const [editing, setEditing]     = useState(false)
   const [form, setForm]           = useState(null)
@@ -57,7 +62,7 @@ const KullaniciDetail = () => {
         lastName:  user.lastName  || '',
         email:     user.email     || '',
         phone:     user.phone     || '',
-        role:      user.role      || 'SALES_PERSON',
+        role:      user.role      ?? '',
         enabled:   user.enabled   ?? true,
       })
     }
@@ -75,7 +80,7 @@ const KullaniciDetail = () => {
         lastName:  user.lastName  || '',
         email:     user.email     || '',
         phone:     user.phone     || '',
-        role:      user.role      || 'SALES_PERSON',
+        role:      user.role      ?? '',
         enabled:   user.enabled   ?? true,
       })
     }
@@ -112,7 +117,7 @@ const KullaniciDetail = () => {
           </Button>
         </Tooltip>
         <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>{user.fullName}</Typography>
-        <RoleChip role={user.role} />
+        <RoleChip role={user.role} roles={roles} />
         {!user.enabled && (
           <Chip label="Pasif" size="small" sx={{ bgcolor: '#fef2f2', color: '#dc2626', fontWeight: 600, fontSize: 11, border: '1px solid #fecaca' }} />
         )}
@@ -171,11 +176,12 @@ const KullaniciDetail = () => {
                 <FormControl fullWidth size="small">
                   <InputLabel>Rol</InputLabel>
                   <Select value={form.role} label="Rol" onChange={set('role')}>
-                    {ROLE_OPTIONS.map(r => <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>)}
+                    <MenuItem value=""><em>— Rol Yok —</em></MenuItem>
+                    {roles.map(r => <MenuItem key={r.name} value={r.name}>{r.label}</MenuItem>)}
                   </Select>
                 </FormControl>
               )
-              : <Field label="Rol"><RoleChip role={user.role} /></Field>}
+              : <Field label="Rol"><RoleChip role={user.role} roles={roles} /></Field>}
           </Grid>
           <Grid item xs={12} sm={4}>
             {editing

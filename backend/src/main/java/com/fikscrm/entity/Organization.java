@@ -30,6 +30,10 @@ public class Organization {
     @Builder.Default
     private String status = "Taslak";
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean everActivated = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;

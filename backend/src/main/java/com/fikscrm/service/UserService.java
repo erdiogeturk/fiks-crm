@@ -3,7 +3,6 @@ package com.fikscrm.service;
 import com.fikscrm.dto.UserDTO;
 import com.fikscrm.dto.UserRequest;
 import com.fikscrm.entity.Company;
-import com.fikscrm.entity.RoleType;
 import com.fikscrm.entity.User;
 import com.fikscrm.exception.ResourceNotFoundException;
 import com.fikscrm.repository.UserRepository;
@@ -52,7 +51,7 @@ public class UserService {
                 .lastName(req.getLastName())
                 .email(req.getEmail())
                 .phone(req.getPhone())
-                .role(req.getRole() != null ? req.getRole() : RoleType.SALES_PERSON)
+                .role(req.getRole() != null ? req.getRole() : "")
                 .company(company())
                 .enabled(true)
                 .build();
@@ -100,7 +99,7 @@ public class UserService {
         userRepo.delete(find(id));
     }
 
-    public List<UserDTO> getByRole(RoleType role) {
+    public List<UserDTO> getByRole(String role) {
         return userRepo.findAllByCompanyIdAndRoleOrderByLastNameAscFirstNameAsc(companyId(), role)
                 .stream().map(this::toDTO).toList();
     }
@@ -108,7 +107,7 @@ public class UserService {
     public Map<String, Long> getRoleSummary() {
         Map<String, Long> summary = new java.util.LinkedHashMap<>();
         userRepo.countByRoleForCompany(companyId())
-                .forEach(row -> summary.put(((RoleType) row[0]).name(), (Long) row[1]));
+                .forEach(row -> summary.put((String) row[0], (Long) row[1]));
         return summary;
     }
 

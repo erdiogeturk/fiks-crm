@@ -96,28 +96,27 @@ const OrganizasyonPage = () => {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={8} align="center" sx={{ py: 4, color: 'text.secondary' }}>Kayıt bulunamadı.</TableCell></TableRow>
             ) : filtered.map(row => (
-              <TableRow key={row.id} hover>
+              <TableRow
+                key={row.id}
+                hover
+                onClick={() => navigate(`/sistem/organizasyon/${row.id}`)}
+                sx={{ cursor: 'pointer' }}
+              >
                 <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>{row.code}</TableCell>
-                <TableCell>
-                  <Typography
-                    component="span"
-                    onClick={() => navigate(`/sistem/organizasyon/${row.id}`)}
-                    sx={{ color: 'primary.main', cursor: 'pointer', fontWeight: 500, '&:hover': { textDecoration: 'underline' } }}
-                  >
-                    {row.name}
-                  </Typography>
-                </TableCell>
+                <TableCell>{row.name}</TableCell>
                 <TableCell>{row.parentName || '—'}</TableCell>
                 <TableCell>{formatDate(row.validFrom)}</TableCell>
                 <TableCell>{formatDate(row.validTo)}</TableCell>
                 <TableCell><StatusChip status={row.status} /></TableCell>
                 <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>{formatDate(row.createdAt)}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Sil">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(row.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                <TableCell align="right" onClick={e => e.stopPropagation()}>
+                  {!row.everActivated && (
+                    <Tooltip title="Sil">
+                      <IconButton size="small" color="error" onClick={() => setDeleteId(row.id)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

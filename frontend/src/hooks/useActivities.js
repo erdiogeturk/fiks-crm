@@ -8,6 +8,14 @@ export const useActivities = () => {
   })
 }
 
+export const useActivity = (id) => {
+  return useQuery({
+    queryKey: ['activities', id],
+    queryFn: () => activityService.getById(id).then(res => res.data.data),
+    enabled: !!id,
+  })
+}
+
 export const useActivitiesByCustomer = (customerId) => {
   return useQuery({
     queryKey: ['activities', 'customer', customerId],

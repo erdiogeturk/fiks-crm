@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import {
   Box, Typography, Button, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Chip, CircularProgress, Alert,
@@ -12,6 +13,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import CodeIcon from '@mui/icons-material/Code'
 import { useColumns, usePreview } from '../../../hooks/useAlans'
+import { useSchemaTables } from '../../../hooks/useSchema'
 
 const DATA_TYPES = [
   { value: 'TEXT',      label: 'Metin',           desc: 'VARCHAR — kısa metin (varsayılan 255 karakter)' },
@@ -57,9 +59,13 @@ const EMPTY_FORM = {
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-const AlanDetayPage = ({ entityType, title }) => {
-  const { columns, apply, deactivate } = useColumns(entityType)
-  const preview = usePreview(entityType)
+const AlanDetayPage = () => {
+  const { tableName } = useParams()
+  const { data: tables = [] } = useSchemaTables()
+  const entityLabel = tables.find(t => t.tableName === tableName)?.displayName || tableName
+
+  const { columns, apply, deactivate } = useColumns(tableName)
+  const preview = usePreview(tableName)
 
   const [open, setOpen]               = useState(false)
   const [step, setStep]               = useState(0)
@@ -143,7 +149,7 @@ const AlanDetayPage = ({ entityType, title }) => {
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>{title}</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>{entityLabel}</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
             Tablo alanlarını görüntüleyin ve yeni özel alanlar ekleyin.
           </Typography>
@@ -268,7 +274,7 @@ const AlanDetayPage = ({ entityType, title }) => {
       {/* ── Add Field Wizard Dialog ────────────────────────── */}
       <Dialog open={open} onClose={step < 2 ? handleClose : undefined} maxWidth="md" fullWidth>
         <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-          Yeni Alan Ekle — {title}
+          Yeni Alan Ekle — {entityLabel}
         </DialogTitle>
 
         <Box sx={{ px: 3, pb: 1 }}>

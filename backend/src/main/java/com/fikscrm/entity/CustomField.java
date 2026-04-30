@@ -14,7 +14,7 @@ public class CustomField {
     private Long id;
 
     @Column(nullable = false, length = 50)
-    private String entityType;   // CrmEntityType name
+    private String entityType;   // raw table name, e.g. "customers"
 
     @Column(nullable = false, length = 100)
     private String tableName;

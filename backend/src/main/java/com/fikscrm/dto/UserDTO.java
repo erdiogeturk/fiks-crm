@@ -1,6 +1,5 @@
 package com.fikscrm.dto;
 
-import com.fikscrm.entity.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +19,7 @@ public class UserDTO {
     private String fullName;
     private String email;
     private String phone;
-    private RoleType role;
+    private String role;
     private boolean enabled;
     private Long companyId;
     private String companyName;

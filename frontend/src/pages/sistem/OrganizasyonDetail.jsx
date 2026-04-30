@@ -5,7 +5,7 @@ import {
   FormControl, InputLabel, Select, MenuItem, CircularProgress,
   Alert, Tabs, Tab, Tooltip, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, IconButton, Dialog,
-  DialogTitle, DialogContent, DialogActions,
+  DialogTitle, DialogContent, DialogActions, Autocomplete,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -13,6 +13,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { useOrganization, useOrganizations } from '../../hooks/useOrganizations'
 import { useEmployees, useOrgTeam } from '../../hooks/useEmployees'
+import { usePositions } from '../../hooks/useLookup'
 import { formatDate } from '../../utils/formatDate'
 
 const STATUS_OPTIONS = ['Taslak', 'Aktif', 'Pasif']
@@ -32,21 +33,42 @@ const Field = ({ label, value, children }) => (
   </Box>
 )
 
+const TEAM_ROLE_OPTIONS = ['Yönetici', 'Çalışan']
+const MEMBER_STATUS_OPTIONS = ['Aktif', 'Pasif']
+
+const EMPTY_MEMBER = { employee: null, teamRole: '', position: null, status: 'Aktif', validFrom: '', validTo: '', manager: null, joinedAt: '' }
+
 const EkipTab = ({ orgId }) => {
+  const navigate = useNavigate()
   const { team, addMember, removeMember } = useOrgTeam(orgId)
   const { active } = useEmployees()
-  const [modal, setModal]     = useState(false)
-  const [empId, setEmpId]     = useState('')
-  const [teamRole, setTeamRole] = useState('')
-  const [joinedAt, setJoinedAt] = useState('')
+  const { list: positionList } = usePositions()
+  const [modal, setModal]   = useState(false)
+  const [form, setForm]     = useState(EMPTY_MEMBER)
   const [removeId, setRemoveId] = useState(null)
   const [addError, setAddError] = useState(null)
+
+  const allEmployees = active.data || []
+  const teamEmpIds   = new Set((team.data || []).map(m => m.employeeId))
+  const available    = allEmployees.filter(e => !teamEmpIds.has(e.id))
+
+  const set = (field) => (val) => setForm(p => ({ ...p, [field]: val }))
 
   const handleAdd = async () => {
     setAddError(null)
     try {
-      await addMember.mutateAsync({ employeeId: Number(empId), teamRole: teamRole || null, joinedAt: joinedAt || null })
-      setModal(false); setEmpId(''); setTeamRole(''); setJoinedAt('')
+      await addMember.mutateAsync({
+        employeeId: form.employee?.id,
+        teamRole:   form.teamRole      || null,
+        positionId: form.position?.id  || null,
+        status:     form.status        || 'Aktif',
+        validFrom:  form.validFrom || null,
+        validTo:    form.validTo   || null,
+        managerId:  form.manager?.id || null,
+        joinedAt:   form.joinedAt  || null,
+      })
+      setModal(false)
+      setForm(EMPTY_MEMBER)
     } catch (err) {
       setAddError(err?.response?.data?.message || 'Ekip üyesi eklenemedi.')
     }
@@ -57,14 +79,10 @@ const EkipTab = ({ orgId }) => {
     setRemoveId(null)
   }
 
-  // employees already in team
-  const teamEmpIds = new Set((team.data || []).map(m => m.employeeId))
-  const available = (active.data || []).filter(e => !teamEmpIds.has(e.id))
-
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={() => { setAddError(null); setModal(true) }}>
+        <Button variant="outlined" size="small" startIcon={<AddIcon />} onClick={() => { setAddError(null); setForm(EMPTY_MEMBER); setModal(true) }}>
           Ekip Üyesi Ekle
         </Button>
       </Box>
@@ -80,25 +98,40 @@ const EkipTab = ({ orgId }) => {
           <Table size="small">
             <TableHead>
               <TableRow>
+                <TableCell sx={{ width: 40 }}>#</TableCell>
                 <TableCell>Ad Soyad</TableCell>
-                <TableCell>Unvan</TableCell>
-                <TableCell>Departman</TableCell>
-                <TableCell>E-posta</TableCell>
-                <TableCell>Ekip Rolü</TableCell>
-                <TableCell>Katılım Tarihi</TableCell>
+                <TableCell>Rol</TableCell>
+                <TableCell>Pozisyon</TableCell>
+                <TableCell>Yöneticisi</TableCell>
+                <TableCell>Durum</TableCell>
+                <TableCell>Geç. Başlangıç</TableCell>
+                <TableCell>Geç. Bitiş</TableCell>
                 <TableCell align="right" />
               </TableRow>
             </TableHead>
             <TableBody>
-              {(team.data || []).map(m => (
-                <TableRow key={m.id} hover>
+              {(team.data || []).map((m, idx) => (
+                <TableRow
+                  key={m.id}
+                  hover
+                  onClick={() => navigate(`/sistem/organizasyon/${orgId}/ekip/${m.id}`)}
+                  sx={{ cursor: 'pointer' }}
+                >
+                  <TableCell sx={{ color: 'text.disabled', fontSize: 12 }}>{idx + 1}</TableCell>
                   <TableCell sx={{ fontWeight: 500 }}>{m.employeeFullName}</TableCell>
-                  <TableCell>{m.employeeTitle || '—'}</TableCell>
-                  <TableCell>{m.employeeDepartment || '—'}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{m.employeeEmail || '—'}</TableCell>
                   <TableCell>{m.teamRole || '—'}</TableCell>
-                  <TableCell sx={{ fontSize: 12 }}>{formatDate(m.joinedAt) || '—'}</TableCell>
-                  <TableCell align="right">
+                  <TableCell>{m.positionName || '—'}</TableCell>
+                  <TableCell>{m.managerFullName || '—'}</TableCell>
+                  <TableCell>
+                    {m.status ? (
+                      <Chip label={m.status} size="small" sx={m.status === 'Aktif'
+                        ? { bgcolor: '#ecfdf5', color: '#059669', fontWeight: 600, fontSize: 11, border: '1px solid #a7f3d0' }
+                        : { bgcolor: '#fef2f2', color: '#dc2626', fontWeight: 600, fontSize: 11, border: '1px solid #fecaca' }} />
+                    ) : '—'}
+                  </TableCell>
+                  <TableCell sx={{ fontSize: 12 }}>{formatDate(m.validFrom) || '—'}</TableCell>
+                  <TableCell sx={{ fontSize: 12 }}>{formatDate(m.validTo) || '—'}</TableCell>
+                  <TableCell align="right" onClick={e => e.stopPropagation()}>
                     <Tooltip title="Çıkar">
                       <IconButton size="small" color="error" onClick={() => setRemoveId(m.id)}>
                         <DeleteIcon fontSize="small" />
@@ -113,22 +146,55 @@ const EkipTab = ({ orgId }) => {
       )}
 
       {/* Add member dialog */}
-      <Dialog open={modal} onClose={() => setModal(false)} maxWidth="xs" fullWidth>
+      <Dialog open={modal} onClose={() => setModal(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Ekip Üyesi Ekle</DialogTitle>
         <DialogContent sx={{ pt: '12px !important', display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          <FormControl fullWidth size="small" required>
-            <InputLabel>Çalışan</InputLabel>
-            <Select value={empId} label="Çalışan" onChange={e => setEmpId(e.target.value)}>
-              {available.map(e => <MenuItem key={e.id} value={e.id}>{e.fullName}{e.title ? ` — ${e.title}` : ''}</MenuItem>)}
+          <Autocomplete
+            options={available}
+            getOptionLabel={e => `${e.fullName}${e.title ? ` — ${e.title}` : ''}`}
+            value={form.employee}
+            onChange={(_, v) => set('employee')(v)}
+            size="small"
+            renderInput={params => <TextField {...params} label="Çalışan" required />}
+          />
+          <FormControl fullWidth size="small">
+            <InputLabel>Rol</InputLabel>
+            <Select value={form.teamRole} label="Rol" onChange={e => set('teamRole')(e.target.value)}>
+              {TEAM_ROLE_OPTIONS.map(r => <MenuItem key={r} value={r}>{r}</MenuItem>)}
             </Select>
           </FormControl>
-          <TextField label="Ekip Rolü" value={teamRole} onChange={e => setTeamRole(e.target.value)} size="small" fullWidth />
-          <TextField label="Katılım Tarihi" type="date" value={joinedAt} onChange={e => setJoinedAt(e.target.value)} size="small" fullWidth InputLabelProps={{ shrink: true }} />
+          <Autocomplete
+            options={positionList.data || []}
+            getOptionLabel={p => p.name}
+            value={form.position}
+            onChange={(_, v) => set('position')(v)}
+            size="small"
+            renderInput={params => <TextField {...params} label="Pozisyon" />}
+          />
+          <Autocomplete
+            options={allEmployees.filter(e => e.id !== form.employee?.id)}
+            getOptionLabel={e => `${e.fullName}${e.title ? ` — ${e.title}` : ''}`}
+            value={form.manager}
+            onChange={(_, v) => set('manager')(v)}
+            size="small"
+            renderInput={params => <TextField {...params} label="Yöneticisi" />}
+          />
+          <FormControl fullWidth size="small">
+            <InputLabel>Durum</InputLabel>
+            <Select value={form.status} label="Durum" onChange={e => set('status')(e.target.value)}>
+              {MEMBER_STATUS_OPTIONS.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField label="Geçerlilik Başlangıcı" type="date" value={form.validFrom} onChange={e => set('validFrom')(e.target.value)} size="small" fullWidth InputLabelProps={{ shrink: true }} />
+            <TextField label="Geçerlilik Bitişi" type="date" value={form.validTo} onChange={e => set('validTo')(e.target.value)} size="small" fullWidth InputLabelProps={{ shrink: true }} />
+          </Box>
+          <TextField label="Katılım Tarihi" type="date" value={form.joinedAt} onChange={e => set('joinedAt')(e.target.value)} size="small" fullWidth InputLabelProps={{ shrink: true }} />
           {addError && <Alert severity="error">{addError}</Alert>}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setModal(false)} variant="outlined" color="inherit" size="small">İptal</Button>
-          <Button onClick={handleAdd} variant="contained" size="small" disabled={!empId || addMember.isPending}>
+          <Button onClick={handleAdd} variant="contained" size="small" disabled={!form.employee || addMember.isPending}>
             {addMember.isPending ? <CircularProgress size={16} /> : 'Ekle'}
           </Button>
         </DialogActions>

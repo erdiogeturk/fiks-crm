@@ -1,6 +1,5 @@
 package com.fikscrm.dto;
 
-import com.fikscrm.entity.RoleType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -20,6 +19,6 @@ public class UserRequest {
 
     private String email;
     private String phone;
-    private RoleType role;
+    private String role;
     private boolean enabled = true;
 }

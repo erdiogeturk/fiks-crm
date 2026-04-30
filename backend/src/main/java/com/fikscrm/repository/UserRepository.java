@@ -1,6 +1,5 @@
 package com.fikscrm.repository;
 
-import com.fikscrm.entity.RoleType;
 import com.fikscrm.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsernameAndIdNot(String username, Long id);
     boolean existsByEmailAndIdNot(String email, Long id);
     List<User> findAllByCompanyIdOrderByLastNameAscFirstNameAsc(Long companyId);
-    List<User> findAllByCompanyIdAndRoleOrderByLastNameAscFirstNameAsc(Long companyId, RoleType role);
+    List<User> findAllByCompanyIdAndRoleOrderByLastNameAscFirstNameAsc(Long companyId, String role);
 
     @Query("SELECT u.role, COUNT(u) FROM User u WHERE u.company.id = :companyId GROUP BY u.role")
     List<Object[]> countByRoleForCompany(@Param("companyId") Long companyId);

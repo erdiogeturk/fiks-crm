@@ -3,7 +3,6 @@ package com.fikscrm.controller;
 import com.fikscrm.dto.ApiResponse;
 import com.fikscrm.dto.UserDTO;
 import com.fikscrm.dto.UserRequest;
-import com.fikscrm.entity.RoleType;
 import com.fikscrm.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +52,7 @@ public class UserController {
     }
 
     @GetMapping("/by-role/{role}")
-    public ResponseEntity<ApiResponse<List<UserDTO>>> getByRole(@PathVariable RoleType role) {
+    public ResponseEntity<ApiResponse<List<UserDTO>>> getByRole(@PathVariable String role) {
         return ResponseEntity.ok(ApiResponse.success(userService.getByRole(role)));
     }
 

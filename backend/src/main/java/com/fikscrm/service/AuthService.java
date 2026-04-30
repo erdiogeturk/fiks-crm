@@ -5,7 +5,7 @@ import com.fikscrm.dto.LoginRequest;
 import com.fikscrm.dto.RegisterRequest;
 import com.fikscrm.dto.UserDTO;
 import com.fikscrm.entity.Company;
-import com.fikscrm.entity.RoleType;
+
 import com.fikscrm.entity.User;
 import com.fikscrm.exception.BadRequestException;
 import com.fikscrm.repository.CompanyRepository;
@@ -54,7 +54,7 @@ public class AuthService {
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
-                .role(RoleType.SUPER_ADMIN)
+                .role("SUPER_ADMIN")
                 .company(defaultCompany)
                 .enabled(true)
                 .build();

@@ -27,4 +27,5 @@ public class EmployeeRequest {
     private boolean createUser;
     private String username;
     private String password;
+    private String userRole;
 }

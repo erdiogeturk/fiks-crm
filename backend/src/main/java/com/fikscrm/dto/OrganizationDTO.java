@@ -14,6 +14,7 @@ public class OrganizationDTO {
     private LocalDate validFrom;
     private LocalDate validTo;
     private String status;
+    private boolean everActivated;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

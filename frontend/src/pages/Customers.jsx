@@ -190,7 +190,7 @@ const Customers = () => {
                 sx={{ position: 'relative', '&:hover .card-actions': { opacity: 1 } }}
               >
                 <Card
-                  onClick={() => navigate(`/customers/${customer.id}`)}
+                  onClick={() => navigate(`/musteriler/${customer.id}`)}
                   sx={{
                     cursor: 'pointer',
                     transition: 'transform 0.15s, box-shadow 0.15s',

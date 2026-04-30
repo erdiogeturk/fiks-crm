@@ -4,7 +4,6 @@ import com.fikscrm.dto.EmployeeDTO;
 import com.fikscrm.dto.EmployeeRequest;
 import com.fikscrm.entity.Company;
 import com.fikscrm.entity.Employee;
-import com.fikscrm.entity.RoleType;
 import com.fikscrm.entity.User;
 import com.fikscrm.exception.ResourceNotFoundException;
 import com.fikscrm.repository.EmployeeRepository;
@@ -71,9 +70,9 @@ public class EmployeeService {
                     .password(passwordEncoder.encode(req.getPassword()))
                     .firstName(req.getFirstName())
                     .lastName(req.getLastName())
-                    .email(req.getEmail())
-                    .phone(req.getPhone())
-                    .role(RoleType.SALES_PERSON)
+                    .email(nullIfBlank(req.getEmail()))
+                    .phone(nullIfBlank(req.getPhone()))
+                    .role(req.getUserRole() != null ? req.getUserRole() : "")
                     .company(co)
                     .enabled(true)
                     .build();
@@ -158,6 +157,10 @@ public class EmployeeService {
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
                 .build();
+    }
+
+    private static String nullIfBlank(String s) {
+        return (s != null && !s.isBlank()) ? s.trim() : null;
     }
 
     private Long companyId() {

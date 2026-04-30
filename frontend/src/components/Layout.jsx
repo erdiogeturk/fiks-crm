@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
@@ -16,6 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { logout, getUser } from '../services/authService'
+import { useSchemaTables } from '../hooks/useSchema'
 import { sidebarGradient, primaryColor } from '../theme'
 import Breadcrumb from './Breadcrumb'
 import { menuConfig } from '../config/menuConfig'
@@ -170,6 +171,27 @@ const Layout = () => {
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const user = getUser()
+  const { data: schemaTables = [] } = useSchemaTables()
+
+  const computedMenu = useMemo(() => {
+    return menuConfig.map(item => {
+      if (item.id !== 'sistem') return item
+      return {
+        ...item,
+        children: item.children.map(child => {
+          if (child.id !== 'alan') return child
+          return {
+            ...child,
+            children: schemaTables.filter(t => !t.maintenance).map(t => ({
+              id: `alan-${t.tableName}`,
+              path: `/sistem/alan/${t.tableName}`,
+              label: t.displayName,
+            })),
+          }
+        }),
+      }
+    })
+  }, [schemaTables])
 
   const [openGroups, setOpenGroups] = useState(() =>
     getInitialOpenGroups(menuConfig, location.pathname)
@@ -220,7 +242,7 @@ const Layout = () => {
           '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.1)', borderRadius: 2 },
         }}
       >
-        {menuConfig.map(item => (
+        {computedMenu.map(item => (
           <MenuItem
             key={item.id}
             item={item}

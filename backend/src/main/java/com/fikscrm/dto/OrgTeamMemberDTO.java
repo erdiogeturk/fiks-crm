@@ -13,6 +13,13 @@ public class OrgTeamMemberDTO {
     private String employeeDepartment;
     private String employeeEmail;
     private String teamRole;
+    private Long positionId;
+    private String positionName;
+    private String status;
+    private LocalDate validFrom;
+    private LocalDate validTo;
+    private Long managerId;
+    private String managerFullName;
     private LocalDate joinedAt;
     private LocalDateTime createdAt;
 }

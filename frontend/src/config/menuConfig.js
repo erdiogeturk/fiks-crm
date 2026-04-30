@@ -12,16 +12,11 @@ export const menuConfig = [
       { id: 'roller', path: '/sistem/roller', label: 'Yetkilendirme/Rol Yönetimi' },
       { id: 'calisanlar', path: '/sistem/calisanlar', label: 'Çalışan Yönetimi' },
       { id: 'kullanicilar', path: '/sistem/kullanicilar', label: 'Kullanıcı Yönetimi' },
+      { id: 'rol-yetki', path: '/sistem/roller/yetki', label: 'Rol Yetki Yönetimi' },
       {
         id: 'alan',
         label: 'Alan Yönetimi',
-        children: [
-          { id: 'alan-musteri', path: '/sistem/alan/musteri', label: 'Müşteri Yönetimi' },
-          { id: 'alan-ilgili-kisi', path: '/sistem/alan/ilgili-kisi', label: 'İlgili Kişi Yönetimi' },
-          { id: 'alan-aktivite', path: '/sistem/alan/aktivite', label: 'Aktivite Yönetimi' },
-          { id: 'alan-satis', path: '/sistem/alan/satis-belgesi', label: 'Satış Belgesi Yönetimi' },
-          { id: 'alan-urun', path: '/sistem/alan/urun', label: 'Ürün Yönetimi' },
-        ],
+        children: [], // populated dynamically by Layout
       },
       {
         id: 'bakimli',

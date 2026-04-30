@@ -9,5 +9,10 @@ public class OrgTeamMemberRequest {
     @NotNull
     private Long employeeId;
     private String teamRole;
+    private Long positionId;
+    private String status;
+    private LocalDate validFrom;
+    private LocalDate validTo;
+    private Long managerId;
     private LocalDate joinedAt;
 }

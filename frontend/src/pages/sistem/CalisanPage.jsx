@@ -10,6 +10,7 @@ import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import SearchIcon from '@mui/icons-material/Search'
 import { useEmployees } from '../../hooks/useEmployees'
+import { useRoles } from '../../hooks/useRoles'
 import { formatDate } from '../../utils/formatDate'
 
 const STATUS_OPTIONS = ['Aktif', 'Pasif']
@@ -27,12 +28,13 @@ const StatusChip = ({ status }) => {
 const EMPTY = {
   firstName: '', lastName: '', registrationNo: '', title: '', department: '',
   email: '', phone: '', startDate: '', status: 'Aktif',
-  createUser: false, username: '', password: '',
+  createUser: false, username: '', password: '', userRole: '',
 }
 
 const CalisanPage = () => {
   const navigate = useNavigate()
   const { list, create, remove } = useEmployees()
+  const { data: roles = [] } = useRoles()
   const [search, setSearch]     = useState('')
   const [modal, setModal]       = useState(false)
   const [form, setForm]         = useState(EMPTY)
@@ -58,6 +60,7 @@ const CalisanPage = () => {
       createUser: form.createUser,
       username:  form.createUser ? form.username : undefined,
       password:  form.createUser ? form.password : undefined,
+      userRole:  form.createUser ? form.userRole : undefined,
     })
     setModal(false)
     setForm(EMPTY)
@@ -170,9 +173,18 @@ const CalisanPage = () => {
             label={<Typography variant="body2">Kullanıcı hesabı oluştur</Typography>}
           />
           {form.createUser && (
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField label="Kullanıcı adı" value={form.username} onChange={set('username')} size="small" fullWidth required />
-              <TextField label="Şifre" type="password" value={form.password} onChange={set('password')} size="small" fullWidth required />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField label="Kullanıcı adı" value={form.username} onChange={set('username')} size="small" fullWidth required />
+                <TextField label="Şifre" type="password" value={form.password} onChange={set('password')} size="small" fullWidth required />
+              </Box>
+              <FormControl fullWidth size="small">
+                <InputLabel>Rol</InputLabel>
+                <Select value={form.userRole} label="Rol" onChange={set('userRole')}>
+                  <MenuItem value=""><em>— Rol Yok —</em></MenuItem>
+                  {roles.map(r => <MenuItem key={r.name} value={r.name}>{r.label}</MenuItem>)}
+                </Select>
+              </FormControl>
             </Box>
           )}
 

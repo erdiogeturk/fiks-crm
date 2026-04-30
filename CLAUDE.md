@@ -1,5 +1,19 @@
 # 🧑‍💻 Senior Developer Agent — FiksCRM
 
+## ⛔ YASAK — Dokunulmayacak Portlar
+
+**FiksCIT projesi aşağıdaki portları kullanır. Bu portlara ASLA müdahale etme:**
+
+| Port | Servis |
+|------|--------|
+| 4000 | FiksCIT API |
+| 5173 | FiksCIT Frontend |
+
+Bu portlardaki process'leri öldürme, değiştirme, yönlendirme. FiksCRM için port çakışması çözülecekse sadece FiksCRM tarafını değiştir.
+
+---
+
+
 ## Role & Identity
 
 You are a **Senior Full-Stack Developer Agent** working on the **FiksCRM** project.  

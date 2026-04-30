@@ -1,0 +1,43 @@
+CREATE TABLE sales_documents (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    document_no VARCHAR(50) UNIQUE,
+    document_type VARCHAR(30) NOT NULL,
+    document_date DATE,
+    due_date DATE,
+    customer_id BIGINT NOT NULL,
+    contact_id BIGINT,
+    status VARCHAR(30) NOT NULL DEFAULT 'TASLAK',
+    currency VARCHAR(10) DEFAULT 'TRY',
+    subtotal DECIMAL(18,2) DEFAULT 0,
+    discount_total DECIMAL(18,2) DEFAULT 0,
+    total_amount DECIMAL(18,2) DEFAULT 0,
+    notes TEXT,
+    company_id BIGINT NOT NULL,
+    created_by_id BIGINT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    CONSTRAINT fk_sd_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CONSTRAINT fk_sd_contact FOREIGN KEY (contact_id) REFERENCES contacts(id),
+    CONSTRAINT fk_sd_company FOREIGN KEY (company_id) REFERENCES companies(id),
+    CONSTRAINT fk_sd_created_by FOREIGN KEY (created_by_id) REFERENCES users(id),
+    INDEX idx_sd_company (company_id),
+    INDEX idx_sd_customer (customer_id),
+    INDEX idx_sd_status (status)
+);
+
+CREATE TABLE sales_document_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sales_document_id BIGINT NOT NULL,
+    product_id BIGINT,
+    product_name VARCHAR(200) NOT NULL,
+    description TEXT,
+    quantity DECIMAL(18,4) NOT NULL DEFAULT 1,
+    unit_price DECIMAL(18,2) NOT NULL DEFAULT 0,
+    discount_rate DECIMAL(5,2) DEFAULT 0,
+    line_total DECIMAL(18,2) NOT NULL DEFAULT 0,
+    unit VARCHAR(50),
+    sort_order INT DEFAULT 0,
+    CONSTRAINT fk_sdi_document FOREIGN KEY (sales_document_id) REFERENCES sales_documents(id) ON DELETE CASCADE,
+    CONSTRAINT fk_sdi_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL,
+    INDEX idx_sdi_document (sales_document_id)
+);

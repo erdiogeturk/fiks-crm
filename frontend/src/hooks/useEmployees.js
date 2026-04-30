@@ -62,3 +62,25 @@ export const useOrgTeam = (orgId) => {
 
   return { team, addMember, removeMember }
 }
+
+export const useOrgTeamMember = (orgId, memberId) => {
+  const qc = useQueryClient()
+  const teamKey = ['org-team', orgId]
+  const memberKey = ['org-team-member', orgId, memberId]
+
+  const data = useQuery({
+    queryKey: memberKey,
+    queryFn: () => employeeService.getTeamMember(orgId, memberId).then(r => r.data.data),
+    enabled: !!orgId && !!memberId,
+  })
+
+  const update = useMutation({
+    mutationFn: (payload) => employeeService.updateTeamMember(orgId, memberId, payload).then(r => r.data.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: memberKey })
+      qc.invalidateQueries({ queryKey: teamKey })
+    },
+  })
+
+  return { data, update }
+}

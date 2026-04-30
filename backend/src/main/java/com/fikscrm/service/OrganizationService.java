@@ -46,13 +46,15 @@ public class OrganizationService {
     public OrganizationDTO create(OrganizationRequest req) {
         validate(req, null);
         Organization parent = resolveParent(req.getParentId());
+        String status = req.getStatus() != null ? req.getStatus() : "Taslak";
         Organization e = Organization.builder()
                 .code(req.getCode().trim())
                 .name(req.getName().trim())
                 .parent(parent)
                 .validFrom(req.getValidFrom())
                 .validTo(req.getValidTo())
-                .status(req.getStatus() != null ? req.getStatus() : "Taslak")
+                .status(status)
+                .everActivated("Aktif".equals(status))
                 .company(company())
                 .build();
         return toDTO(repo.save(e));
@@ -72,13 +74,20 @@ public class OrganizationService {
         e.setParent(parent);
         e.setValidFrom(req.getValidFrom());
         e.setValidTo(req.getValidTo());
-        if (req.getStatus() != null) e.setStatus(req.getStatus());
+        if (req.getStatus() != null) {
+            e.setStatus(req.getStatus());
+            if ("Aktif".equals(req.getStatus())) e.setEverActivated(true);
+        }
         return toDTO(repo.save(e));
     }
 
     @Transactional
     public void delete(Long id) {
-        repo.delete(find(id));
+        Organization e = find(id);
+        if (e.isEverActivated()) {
+            throw new IllegalStateException("Aktifleştirilmiş bir organizasyon silinemez.");
+        }
+        repo.delete(e);
     }
 
     private void validate(OrganizationRequest req, Long excludeId) {
@@ -112,6 +121,7 @@ public class OrganizationService {
                 .parentName(e.getParent() != null ? e.getParent().getName() : null)
                 .validFrom(e.getValidFrom()).validTo(e.getValidTo())
                 .status(e.getStatus())
+                .everActivated(e.isEverActivated())
                 .createdAt(e.getCreatedAt()).updatedAt(e.getUpdatedAt())
                 .build();
     }

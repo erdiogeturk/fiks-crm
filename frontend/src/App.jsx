@@ -8,6 +8,9 @@ import Dashboard from './pages/Dashboard'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
 import Activities from './pages/Activities'
+import ActivityDetail from './pages/ActivityDetail'
+import SatisBelgeleri from './pages/SatisBelgeleri'
+import SatisBelgesiDetail from './pages/SatisBelgesiDetail'
 import Layout from './components/Layout'
 import PlaceholderPage from './components/PlaceholderPage'
 import UlkePage from './pages/bakimli/UlkePage'
@@ -19,16 +22,15 @@ import BirimPage from './pages/bakimli/BirimPage'
 import ParaBirimiPage from './pages/bakimli/ParaBirimiPage'
 import OrganizasyonPage from './pages/sistem/OrganizasyonPage'
 import OrganizasyonDetail from './pages/sistem/OrganizasyonDetail'
+import OrgTeamMemberDetail from './pages/sistem/OrgTeamMemberDetail'
 import CalisanPage from './pages/sistem/CalisanPage'
 import CalisanDetail from './pages/sistem/CalisanDetail'
 import KullaniciPage from './pages/sistem/KullaniciPage'
 import KullaniciDetail from './pages/sistem/KullaniciDetail'
 import RolPage from './pages/sistem/RolPage'
-import MusteriAlanPage      from './pages/sistem/alan/MusteriAlanPage'
-import IlgiliKisiAlanPage   from './pages/sistem/alan/IlgiliKisiAlanPage'
-import AktiviteAlanPage     from './pages/sistem/alan/AktiviteAlanPage'
-import SatisBelgesiAlanPage from './pages/sistem/alan/SatisBelgesiAlanPage'
-import UrunAlanPage         from './pages/sistem/alan/UrunAlanPage'
+import Urunler from './pages/Urunler'
+import AlanDetayPage from './pages/sistem/alan/AlanDetayPage'
+import RolYetkiPage from './pages/sistem/RolYetkiPage'
 
 const ProtectedRoute = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(null)
@@ -68,12 +70,15 @@ function App() {
         <Route path="musteriler" element={<Customers />} />
         <Route path="musteriler/:id" element={<CustomerDetail />} />
         <Route path="aktiviteler" element={<Activities />} />
-        <Route path="satis-belgeleri" element={<PlaceholderPage title="Satış Belgeleri" />} />
-        <Route path="urunler" element={<PlaceholderPage title="Ürünler" />} />
+        <Route path="aktiviteler/:id" element={<ActivityDetail />} />
+        <Route path="satis-belgeleri" element={<SatisBelgeleri />} />
+        <Route path="satis-belgeleri/:id" element={<SatisBelgesiDetail />} />
+        <Route path="urunler" element={<Urunler />} />
 
         {/* Sistem Yönetimi */}
         <Route path="sistem/organizasyon" element={<OrganizasyonPage />} />
         <Route path="sistem/organizasyon/:id" element={<OrganizasyonDetail />} />
+        <Route path="sistem/organizasyon/:orgId/ekip/:memberId" element={<OrgTeamMemberDetail />} />
         <Route path="sistem/roller" element={<RolPage />} />
         <Route path="sistem/calisanlar" element={<CalisanPage />} />
         <Route path="sistem/calisanlar/:id" element={<CalisanDetail />} />
@@ -81,11 +86,11 @@ function App() {
         <Route path="sistem/kullanicilar/:id" element={<KullaniciDetail />} />
 
         {/* Alan Yönetimi */}
-        <Route path="sistem/alan/musteri"       element={<MusteriAlanPage />} />
-        <Route path="sistem/alan/ilgili-kisi"   element={<IlgiliKisiAlanPage />} />
-        <Route path="sistem/alan/aktivite"      element={<AktiviteAlanPage />} />
-        <Route path="sistem/alan/satis-belgesi" element={<SatisBelgesiAlanPage />} />
-        <Route path="sistem/alan/urun"          element={<UrunAlanPage />} />
+        <Route path="sistem/alan/:tableName" element={<AlanDetayPage />} />
+
+        {/* Rol Yetki Yönetimi */}
+        <Route path="sistem/roller/yetki" element={<RolYetkiPage />} />
+        <Route path="sistem/roller/yetki/:roleType" element={<RolYetkiPage />} />
 
         {/* Bakımlı Tablo Yönetimi */}
         <Route path="sistem/bakimli/ulke"       element={<UlkePage />} />
