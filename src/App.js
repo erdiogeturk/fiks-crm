@@ -95,6 +95,30 @@ const TRANSLATIONS = {
     validUntil: "Geçerlilik Tarihi", revision: "Revizyon", revisionNo: "Rev. No",
     addRevision: "Revizyon Ekle", revisionHistory: "Revizyon Tarihçesi",
     Yüksek: "Yüksek", Orta: "Orta", Düşük: "Düşük",
+    // Proje detay alanları
+    proposalName: "Teklif / Proje Adı", proposalNamePlaceholder: "Örn. S/4HANA Dönüşüm Projesi",
+    newProposal: "Yeni Teklif", customerLabel: "Müşteri", currency: "Para Birimi",
+    probability: "Olasılık (%)", nextAction: "Sonraki Aksiyon",
+    actionNote: "Aksiyon Notu", actionNotePlaceholder: "Örn. Demo sunum / Teknik toplantı",
+    actionDate: "Aksiyon Tarihi",
+    // Veri yükleme
+    seedTitle: "Veri Tabanı Senkronizasyonu",
+    seedDesc: "Fırsat Takip Excel'indeki firma ve projeler CRM'e yüklensin mi?",
+    seedRun: "Verileri Yükle", seedRunning: "Yükleniyor...",
+    seedDone: "Senkronizasyon tamamlandı", seedSkip: "Atla",
+    seedAdded: "yeni firma + ", seedProjAdded: "yeni proje eklendi",
+    seedAlreadyExists: "Mevcut kayıtlar atlandı",
+    // Sıralama
+    sortBy: "Sırala", sortByName: "Ada Göre", sortByValue: "Hacme Göre",
+    sortByCount: "Proje Sayısı", sortByDate: "Tarihe Göre",
+    // Aksiyon
+    confirmDeleteCust: "müşterisini sil? (Tüm projeleri ve aktiviteleri de silinecek)",
+    confirmDeleteProj: "teklifini silmek istediğinize emin misiniz?",
+    deleteCustomer: "Müşteriyi Sil",
+    // Notlar
+    notes: "Notlar", projectNotes: "Proje Notları",
+    // Export
+    exportExcel: "Excel'e Aktar",
   },
   en: {
     dashboard: "Dashboard", customers: "Customers", projects: "Projects", pipeline: "Pipeline",
@@ -140,6 +164,24 @@ const TRANSLATIONS = {
     validUntil: "Valid Until", revision: "Revision", revisionNo: "Rev. No",
     addRevision: "Add Revision", revisionHistory: "Revision History",
     Yüksek: "High", Orta: "Medium", Düşük: "Low",
+    proposalName: "Proposal / Project Name", proposalNamePlaceholder: "e.g. S/4HANA Migration Project",
+    newProposal: "New Proposal", customerLabel: "Customer", currency: "Currency",
+    probability: "Probability (%)", nextAction: "Next Action",
+    actionNote: "Action Note", actionNotePlaceholder: "e.g. Demo / Technical meeting",
+    actionDate: "Action Date",
+    seedTitle: "Database Sync",
+    seedDesc: "Load companies and projects from the Opportunity Tracker into CRM?",
+    seedRun: "Load Data", seedRunning: "Loading...",
+    seedDone: "Sync complete", seedSkip: "Skip",
+    seedAdded: "new companies + ", seedProjAdded: "new projects added",
+    seedAlreadyExists: "Existing records skipped",
+    sortBy: "Sort", sortByName: "By Name", sortByValue: "By Value",
+    sortByCount: "Project Count", sortByDate: "By Date",
+    confirmDeleteCust: "Delete this customer? (All projects and activities will also be deleted)",
+    confirmDeleteProj: "Are you sure you want to delete this proposal?",
+    deleteCustomer: "Delete Customer",
+    notes: "Notes", projectNotes: "Project Notes",
+    exportExcel: "Export to Excel",
   },
   ar: {
     dashboard: "لوحة القيادة", customers: "العملاء", projects: "المشاريع", pipeline: "خط الأنابيب",
@@ -185,6 +227,24 @@ const TRANSLATIONS = {
     validUntil: "صالح حتى", revision: "المراجعة", revisionNo: "رقم المراجعة",
     addRevision: "إضافة مراجعة", revisionHistory: "سجل المراجعات",
     Yüksek: "عالي", Orta: "متوسط", Düşük: "منخفض",
+    proposalName: "اسم العرض / المشروع", proposalNamePlaceholder: "مثلاً مشروع تحويل S/4HANA",
+    newProposal: "عرض جديد", customerLabel: "العميل", currency: "العملة",
+    probability: "الاحتمالية (%)", nextAction: "الإجراء التالي",
+    actionNote: "ملاحظة الإجراء", actionNotePlaceholder: "مثلاً عرض توضيحي / اجتماع فني",
+    actionDate: "تاريخ الإجراء",
+    seedTitle: "مزامنة قاعدة البيانات",
+    seedDesc: "تحميل الشركات والمشاريع من متعقب الفرص إلى CRM؟",
+    seedRun: "تحميل البيانات", seedRunning: "جارٍ التحميل...",
+    seedDone: "اكتملت المزامنة", seedSkip: "تخطي",
+    seedAdded: "شركات جديدة + ", seedProjAdded: "مشاريع جديدة أضيفت",
+    seedAlreadyExists: "تم تخطي السجلات الموجودة",
+    sortBy: "فرز", sortByName: "بالاسم", sortByValue: "بالقيمة",
+    sortByCount: "بعدد المشاريع", sortByDate: "بالتاريخ",
+    confirmDeleteCust: "حذف هذا العميل؟ (سيتم حذف جميع المشاريع والأنشطة أيضاً)",
+    confirmDeleteProj: "هل أنت متأكد من حذف هذا العرض؟",
+    deleteCustomer: "حذف العميل",
+    notes: "ملاحظات", projectNotes: "ملاحظات المشروع",
+    exportExcel: "تصدير إلى Excel",
   },
 };
 
@@ -198,6 +258,83 @@ const STATUSES = {
   Beklemede: { color: "#94a3b8", bg: "#f8fafc", border: "#e2e8f0", label: "Beklemede" },
 };
 const PRIORITIES = { Yüksek: { color: "#ef4444", icon: "▲" }, Orta: { color: "#f59e0b", icon: "●" }, Düşük: { color: "#22c55e", icon: "▼" } };
+
+// ─── SEED DATA: Fiks Fırsat Takip — 32 firma / 38 proje ───
+const SEED_COMPANIES = [
+  { name: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", logo_code: "AB", color: "#8b5cf6", sector: "Plastik / Ambalaj" },
+  { name: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", logo_code: "VK", color: "#1B3A6B", sector: "Tekstil / Lüks Perakende" },
+  { name: "SAKA Group", logo_code: "SK", color: "#84cc16", sector: "Gıda / İçecek" },
+  { name: "Akdeniz Chemson", logo_code: "AC", color: "#00C4A7", sector: "Kimya (PVC Stabilizatör)" },
+  { name: "Almatis GmbH", logo_code: "AL", color: "#2E6FAC", sector: "Endüstriyel Kimya" },
+  { name: "İzocam", logo_code: "İZ", color: "#fbbf24", sector: "Yalıtım Malzemeleri" },
+  { name: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", logo_code: "BR", color: "#ef4444", sector: "Makina / Güç Sistemleri" },
+  { name: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", logo_code: "ER", color: "#6b7280", sector: "Çelik" },
+  { name: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", logo_code: "YE", color: "#a16207", sector: "Orman Ürünleri" },
+  { name: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", logo_code: "AS", color: "#64748b", sector: "Alüminyum" },
+  { name: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", logo_code: "KS", color: "#dc2626", sector: "BT Hizmetleri" },
+  { name: "Norm Digital A.Ş.", logo_code: "ND", color: "#2E6FAC", sector: "BT / Bağlantı Elemanları" },
+  { name: "Oyak Dijital A.Ş.", logo_code: "OD", color: "#1B3A6B", sector: "BT (OYAK Group)" },
+  { name: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", logo_code: "OP", color: "#E87722", sector: "Perakende / Turizm (OYAK)" },
+  { name: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", logo_code: "ER", color: "#374151", sector: "Çelik" },
+  { name: "Koç Sistem", logo_code: "KS", color: "#dc2626", sector: "BT Hizmetleri" },
+  { name: "SAMAŞ Madencilik", logo_code: "SM", color: "#78350f", sector: "Madencilik" },
+  { name: "Oypa", logo_code: "OY", color: "#E87722", sector: "Perakende (OYAK)" },
+  { name: "Emlak Konut", logo_code: "EK", color: "#16a34a", sector: "Gayrimenkul" },
+  { name: "EKA", logo_code: "EK", color: "#0891b2", sector: "Kurumsal Müşteri" },
+  { name: "Kıvanç Kağıt", logo_code: "KK", color: "#a16207", sector: "Kağıt / Ambalaj" },
+  { name: "ERDEMİR", logo_code: "ER", color: "#374151", sector: "Çelik" },
+  { name: "Sarıbekir", logo_code: "SR", color: "#0891b2", sector: "Kurumsal Müşteri" },
+  { name: "COREX", logo_code: "CX", color: "#7c3aed", sector: "Endüstri" },
+  { name: "Gübretaş", logo_code: "GB", color: "#16a34a", sector: "Gübre / Kimya" },
+  { name: "Moka United", logo_code: "MU", color: "#1B3A6B", sector: "Fintech / Ödeme" },
+  { name: "Aydem", logo_code: "AY", color: "#f59e0b", sector: "Enerji" },
+  { name: "İpragaz", logo_code: "İP", color: "#dc2626", sector: "Enerji / LPG" },
+  { name: "Divan", logo_code: "DV", color: "#1B3A6B", sector: "Otelcilik / Turizm" },
+  { name: "Havelsan", logo_code: "HV", color: "#1B3A6B", sector: "Savunma / BT" },
+  { name: "HD Pidem", logo_code: "HD", color: "#0891b2", sector: "Hazır Yemek / Catering" },
+  { name: "Adana Kağıt", logo_code: "AK", color: "#a16207", sector: "Kağıt / Ambalaj" },
+];
+
+const SEED_PROJECTS = [
+  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "S/4HANA Dönüşüm Projesi", status: "Lead", amount: 800000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", name: "S/4HANA Retail Dönüşümü", status: "Kaybedildi", amount: 185000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAKA Group S/4HANA Projesi", status: "Lead", amount: 600000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAP S/4HANA RFP Süreç Kapsamı Danışmanlık Teklifi", status: "Kazanıldı", amount: 23000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Akdeniz Chemson", name: "S/4HANA Projesi", status: "Kaybedildi", amount: 1900000, currency: "EUR", priority: "Yüksek", probability: 35, region: "domestic" },
+  { firma: "Almatis GmbH", name: "SAP Business Data Cloud (BDC) Platform Implementation", status: "Teklif", amount: 200700, currency: "EUR", priority: "Yüksek", probability: 50, region: "eu" },
+  { firma: "İzocam", name: "Kayseri Tesis Genişlemesi", status: "Kaybedildi", amount: 78400, currency: "EUR", priority: "Yüksek", probability: 30, region: "domestic" },
+  { firma: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", name: "SAP Framework Upgrade (JDK 21.9 & Spring Geçiş Projesi)", status: "Müzakere", amount: 420000, currency: "TRY", priority: "Orta", probability: 80, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "ERSEM T&M SAP Modül Destek", status: "Kazanıldı", amount: 3000000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", name: "İthalat-İhracat Paketi", status: "Kazanıldı", amount: 25000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", name: "Devops Hizmeti", status: "Kazanıldı", amount: 840000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", name: "OpetFuchs Kârlılık Analiz Modeli Kurulum", status: "Kazanıldı", amount: 489000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Norm Digital A.Ş.", name: "Norm Fasteners Morocco SAP Roll-out Projesi", status: "Kazanıldı", amount: 5218600, currency: "TRY", priority: "Yüksek", probability: 100, region: "africa" },
+  { firma: "Oyak Dijital A.Ş.", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 4750000, currency: "TRY", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", name: "Kıbrıs Bordro Migrasyon", status: "Teklif", amount: 28875, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Destek", status: "Kazanıldı", amount: 15000000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Koç Sistem", name: "Tüpraş Tedarikçi Portali", status: "Teklif", amount: 26650, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAMAŞ Madencilik", name: "S/4HANA Dönüşüm Projesi", status: "Teklif", amount: 750000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oypa", name: "Basis", status: "Teklif", amount: 12000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Emlak Konut", name: "Destek", status: "Kazanıldı", amount: 17500, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "EKA", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 1295000, currency: "TRY", priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Kıvanç Kağıt", name: "WM Projesi", status: "Kazanıldı", amount: 1513200, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ERDEMİR", name: "E-Mutabakat", status: "Kazanıldı", amount: 159000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Sarıbekir", name: "CRM Ürünü", status: "Teklif", amount: 0, currency: "EUR", priority: "Orta", probability: 50, region: "domestic" },
+  { firma: "COREX", name: "SAP Upgrade Fırsatı (Alkedos)", status: "Lead", amount: 0, currency: "EUR", priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Gübretaş", name: "PM Projesi", status: "Teklif", amount: 19980, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Moka United", name: "Basis (1 Yıllık)", status: "Lead", amount: 600000, currency: "TRY", priority: "Orta", probability: 40, region: "domestic" },
+  { firma: "Aydem", name: "Rise Taşıma", status: "Teklif", amount: 6500000, currency: "TRY", priority: "Yüksek", probability: 60, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "Basis", status: "Kazanıldı", amount: 552000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Basis", status: "Kazanıldı", amount: 1350000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "İpragaz", name: "Özgür Dedikasyon (Dedike Danışman)", status: "Kazanıldı", amount: 2906250, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Divan", name: "EHÖ", status: "Kazanıldı", amount: 12500, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Havelsan", name: "HEAS-Kovan Projesi", status: "Kazanıldı", amount: 1200000, currency: "USD", priority: "Yüksek", probability: 100, region: "me" },
+  { firma: "Havelsan", name: "MSB (Kovan Projesi)", status: "Teklif", amount: 5850000, currency: "USD", priority: "Yüksek", probability: 70, region: "me" },
+  { firma: "HD Pidem", name: "Cash Management", status: "Lead", amount: 0, currency: "EUR", priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Divan", name: "S/4HANA Projesi", status: "Lead", amount: 750000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Adana Kağıt", name: "S/4HANA Projesi", status: "Lead", amount: 800000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Emlak Konut", name: "Satınalma Süreci Projesi", status: "Lead", amount: 35000, currency: "TRY", priority: "Yüksek", probability: 50, region: "domestic" },
+];
 
 // ─── HELPERS ───
 const formatCurrency = (amount, currency) => {
@@ -449,10 +586,32 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
 }
 
 // ─── PROJECTS TABLE ───
-function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, onProjectClick }) {
+function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, onProjectClick, onProjectDelete }) {
   const [search, setSearch] = useState("");
   const [statusF, setStatusF] = useState("");
   const [priorityF, setPriorityF] = useState("");
+  const [sortKey, setSortKey] = useState("date");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const handleDelete = async (p) => {
+    if (!window.confirm(`"${p.name}" ${t.confirmDeleteProj}`)) return;
+    await sb.remove("projects", p.id).catch(console.error);
+    if (onProjectDelete) onProjectDelete(p.id);
+  };
+
+  const handleExport = () => {
+    const rows = filtered.map(p => {
+      const c = customers.find(x => x.id === p.customerId) || { name: "?" };
+      return [c.name, p.name, p.contact || "", p.amount, p.currency, p.date, t[p.status] || p.status, t[p.priority] || p.priority, `%${p.probability}`];
+    });
+    const header = ["Müşteri", "Proje", "Kontak", "Tutar", "Para", "Tarih", "Durum", "Öncelik", "Olasılık"];
+    const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `Fiks_Teklifler_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
 
   const filtered = projects.filter(p => {
     const cust = customers.find(c => c.id === p.customerId) || { name: "?", logo_code: "?", color: "#666" };
@@ -460,7 +619,17 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, o
     const matchStatus = !statusF || p.status === statusF;
     const matchPriority = !priorityF || p.priority === priorityF;
     return matchSearch && matchStatus && matchPriority;
-  }).sort((a, b) => new Date(b.date) - new Date(a.date));
+  }).sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    if (sortKey === "amount") return (toTRY(a.amount, a.currency) - toTRY(b.amount, b.currency)) * dir;
+    if (sortKey === "name") return a.name.localeCompare(b.name) * dir;
+    return (new Date(a.date) - new Date(b.date)) * dir;
+  });
+
+  const toggleSort = (k) => {
+    if (sortKey === k) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortKey(k); setSortDir("desc"); }
+  };
 
   return (
     <div>
@@ -479,15 +648,21 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, o
           <option value="Orta">{t.medium}</option>
           <option value="Düşük">{t.low}</option>
         </select>
+        <button onClick={handleExport} title={t.exportExcel} style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #00C4A7", background: "#fff", color: "#00C4A7", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>📊 {t.exportExcel}</button>
       </div>
 
       <div style={{ ...styles.card, padding: 0, overflow: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
           <thead>
             <tr style={{ borderBottom: "2px solid #f1f5f9" }}>
-              {[t.customerCol, t.projectCol, t.contactCol, t.amountCol, t.dateCol, t.statusCol, t.priorityCol, t.actionCol].map((h, i) => (
-                <th key={i} style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{h}</th>
-              ))}
+              <th onClick={() => toggleSort("name")} style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5, cursor: "pointer", userSelect: "none" }}>{t.customerCol} {sortKey === "name" ? (sortDir === "asc" ? "▲" : "▼") : ""}</th>
+              <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{t.projectCol}</th>
+              <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{t.contactCol}</th>
+              <th onClick={() => toggleSort("amount")} style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5, cursor: "pointer", userSelect: "none" }}>{t.amountCol} {sortKey === "amount" ? (sortDir === "asc" ? "▲" : "▼") : ""}</th>
+              <th onClick={() => toggleSort("date")} style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5, cursor: "pointer", userSelect: "none" }}>{t.dateCol} {sortKey === "date" ? (sortDir === "asc" ? "▲" : "▼") : ""}</th>
+              <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{t.statusCol}</th>
+              <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{t.priorityCol}</th>
+              <th style={{ padding: "14px 16px", textAlign: "left", fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: .5 }}>{t.actionCol}</th>
             </tr>
           </thead>
           <tbody>
@@ -522,8 +697,8 @@ function ProjectsTable({ projects, customers, t, setPage, setSelectedCustomer, o
                     </span>
                   </td>
                   <td style={{ padding: "12px 16px", display: "flex", gap: 8 }}>
-                    <button onClick={() => onProjectClick && onProjectClick(p)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#3b82f6" }}>✎</button>
-                    <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#fca5a5" }}>✕</button>
+                    <button onClick={() => onProjectClick && onProjectClick(p)} title={t.edit} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#3b82f6" }}>✎</button>
+                    <button onClick={() => handleDelete(p)} title={t.delete} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 16, color: "#fca5a5" }}>✕</button>
                   </td>
                 </tr>
               );
@@ -636,32 +811,70 @@ function Pipeline({ projects, customers, setProjects, t, statusFilter, onStatusC
 }
 
 // ─── CUSTOMERS LIST ───
-function CustomersList({ customers, t, setPage, setSelectedCustomer, projects }) {
+function CustomersList({ customers, t, setPage, setSelectedCustomer, projects, onCustomerDelete }) {
   const [search, setSearch] = useState("");
-  const filtered = customers.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()));
+  const [sortKey, setSortKey] = useState("value");
+
+  const enriched = customers.map(c => {
+    const cps = projects.filter(p => p.customerId === c.id);
+    return {
+      ...c,
+      projectCount: cps.length,
+      totalValue: cps.reduce((a, p) => a + toTRY(p.amount, p.currency), 0),
+      wonCount: cps.filter(p => p.status === "Kazanıldı").length,
+      activeCount: cps.filter(p => ["Lead", "Teklif", "Müzakere"].includes(p.status)).length,
+    };
+  });
+
+  const filtered = enriched.filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.sector || "").toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortKey === "name") return a.name.localeCompare(b.name);
+      if (sortKey === "count") return b.projectCount - a.projectCount;
+      return b.totalValue - a.totalValue;
+    });
+
+  const handleDelete = async (e, c) => {
+    e.stopPropagation();
+    if (!window.confirm(`"${c.name}" ${t.confirmDeleteCust}`)) return;
+    if (onCustomerDelete) await onCustomerDelete(c);
+  };
 
   return (
     <div>
-      <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.search}
-        style={{ width: "100%", maxWidth: 400, padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 14, outline: "none", marginBottom: 16 }} />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-        {filtered.map(c => {
-          const custProjects = projects.filter(p => p.customerId === c.id);
-          const totalVal = custProjects.reduce((a, p) => a + toTRY(p.amount, p.currency), 0);
-          return (
-            <div key={c.id} onClick={() => { setSelectedCustomer(c); setPage("customerDetail"); }}
-              style={{ ...styles.card, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, transition: "box-shadow .15s" }}
-              onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,.1)"}
-              onMouseLeave={e => e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,.06)"}
-            >
-              <Avatar customer={c} size={48} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.name}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>{custProjects.length} {t.project} · {formatFullTRY(totalVal)}</div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t.search}
+          style={{ flex: 1, minWidth: 200, maxWidth: 400, padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 14, outline: "none" }} />
+        <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>{t.sortBy}:</span>
+        <select value={sortKey} onChange={e => setSortKey(e.target.value)}
+          style={{ padding: "10px 14px", borderRadius: 10, border: "1.5px solid #e5e7eb", fontSize: 13, background: "#fff", cursor: "pointer" }}>
+          <option value="value">{t.sortByValue}</option>
+          <option value="count">{t.sortByCount}</option>
+          <option value="name">{t.sortByName}</option>
+        </select>
+        <span style={{ fontSize: 12, color: "#94a3b8", marginLeft: "auto" }}>{filtered.length} {t.customer.toLowerCase()}</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+        {filtered.map(c => (
+          <div key={c.id} onClick={() => { setSelectedCustomer(c); setPage("customerDetail"); }}
+            style={{ ...styles.card, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, transition: "box-shadow .15s, transform .15s", position: "relative" }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,.1)"; e.currentTarget.style.transform = "translateY(-2px)"; const btn = e.currentTarget.querySelector('.del-btn'); if (btn) btn.style.opacity = '1'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,.06)"; e.currentTarget.style.transform = ""; const btn = e.currentTarget.querySelector('.del-btn'); if (btn) btn.style.opacity = '0'; }}
+          >
+            <Avatar customer={c} size={48} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: 28 }}>{c.name}</div>
+              {c.sector && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{c.sector}</div>}
+              <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#3b82f6", background: "#eff6ff", padding: "2px 8px", borderRadius: 10 }}>{c.projectCount} {t.project}</span>
+                {c.wonCount > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: "#22c55e", background: "#f0fdf4", padding: "2px 8px", borderRadius: 10 }}>✓ {c.wonCount}</span>}
+                {c.activeCount > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: "#f59e0b", background: "#fffbeb", padding: "2px 8px", borderRadius: 10 }}>● {c.activeCount}</span>}
               </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 4, fontWeight: 600 }}>{formatFullTRY(c.totalValue)}</div>
             </div>
-          );
-        })}
+            <button className="del-btn" onClick={(e) => handleDelete(e, c)} title={t.delete}
+              style={{ position: "absolute", top: 12, right: 12, background: "#fef2f2", border: "1px solid #fecaca", color: "#ef4444", borderRadius: "50%", width: 24, height: 24, cursor: "pointer", fontSize: 12, opacity: 0, transition: "opacity .15s", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -909,16 +1122,17 @@ function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDel
 }
 
 // ─── TEKLİFLER TAB ───
-function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick, onNewProject }) {
+function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick, onNewProject, onProjectsChange }) {
   const [projects, setProjects] = useState(custProjects);
 
-  // Sync when custProjects changes
-  useState(() => { setProjects(custProjects); }, [custProjects]);
+  // Sync when custProjects changes (DÜZELTME: useState -> useEffect)
+  useEffect(() => { setProjects(custProjects); }, [custProjects]);
 
   const handleDelete = async (p) => {
-    if (!window.confirm(`"${p.name}" teklifini silmek istediğinizden emin misiniz?`)) return;
+    if (!window.confirm(`"${p.name}" ${t.confirmDeleteProj}`)) return;
     await sb.remove("projects", p.id).catch(console.error);
     setProjects(prev => prev.filter(x => x.id !== p.id));
+    if (onProjectsChange) onProjectsChange(p.id);
   };
 
   return (
@@ -969,7 +1183,7 @@ function TekliflerTab({ custProjects, customers, t, sectionTitle, onProjectClick
 }
 
 // ─── CUSTOMER DETAIL (SAP BP FORM — 5 TABS) ───
-function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onProjectClick, onNewProject }) {
+function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onProjectClick, onNewProject, onCustomerDelete, onProjectsChange }) {
   const [tab, setTab] = useState(0);
   const [form, setForm] = useState({
     name: customer.name || "", name1: customer.name1 || "", name2: customer.name2 || "",
@@ -1140,6 +1354,15 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{form.name || (t.newCustomer || "Yeni Müşteri")}</h2>
             <div style={{ fontSize: 13, color: "#94a3b8" }}>{custProjects.length} {t.project}</div>
           </div>
+          {!customer.isNew && (
+            <button onClick={async () => {
+              if (!window.confirm(`"${customer.name}" ${t.confirmDeleteCust}`)) return;
+              if (onCustomerDelete) await onCustomerDelete(customer);
+              setPage("customers");
+            }} style={{ padding: "8px 14px", borderRadius: 10, border: "1.5px solid #fecaca", background: "#fef2f2", color: "#ef4444", fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              ✕ {t.deleteCustomer}
+            </button>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 0, borderBottom: "2px solid #f1f5f9", marginBottom: 20, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
@@ -1321,6 +1544,7 @@ function CustomerDetail({ customer, customers, t, setPage, projects, onSave, onP
             sectionTitle={sectionTitle}
             onProjectClick={onProjectClick}
             onNewProject={onNewProject}
+            onProjectsChange={onProjectsChange}
           />
         )}
 
@@ -1406,6 +1630,83 @@ export default function FiksCRM() {
   // Delete project
   const handleDeleteProject = (projectId) => {
     setProjects(prev => prev.filter(p => p.id !== projectId));
+  };
+
+  // Delete customer (cascading: deletes projects, contacts, activities)
+  const handleDeleteCustomer = async (cust) => {
+    try {
+      // Delete related projects
+      const custProjects = projects.filter(p => p.customerId === cust.id);
+      for (const p of custProjects) {
+        await sb.remove("projects", p.id).catch(console.error);
+      }
+      // Delete contacts and activities
+      const contacts = await sb.query("customer_contacts", { eq: { customer_id: cust.id } }).catch(() => []);
+      for (const c of (contacts || [])) {
+        await sb.remove("customer_contacts", c.id).catch(console.error);
+      }
+      const acts = await sb.query("customer_activities", { eq: { customer_id: cust.id } }).catch(() => []);
+      for (const a of (acts || [])) {
+        await sb.remove("customer_activities", a.id).catch(console.error);
+      }
+      // Delete customer
+      await sb.remove("customers", cust.id);
+      setCustomers(prev => prev.filter(c => c.id !== cust.id));
+      setProjects(prev => prev.filter(p => p.customerId !== cust.id));
+    } catch (e) { console.error("Delete customer error:", e); alert("Silme hatası: " + e.message); }
+  };
+
+  // ─── SEED DATA — Excel'den toplu veri yükleme ───
+  const [seedRunning, setSeedRunning] = useState(false);
+  const [seedResult, setSeedResult] = useState(null);
+
+  const handleSeedDatabase = async () => {
+    setSeedRunning(true);
+    let companiesAdded = 0, projectsAdded = 0, skipped = 0;
+    try {
+      // Mevcut müşteri adlarını topla (case-insensitive)
+      const existingNames = new Set(customers.map(c => c.name.trim().toLowerCase()));
+      const nameToId = {};
+      customers.forEach(c => { nameToId[c.name.trim().toLowerCase()] = c.id; });
+
+      // 1) Yeni firmalar
+      for (const co of SEED_COMPANIES) {
+        const key = co.name.trim().toLowerCase();
+        if (existingNames.has(key)) { skipped++; continue; }
+        const result = await sb.insert("customers", {
+          name: co.name, logo_code: co.logo_code, color: co.color,
+          customer_type: "corporate", customer_role: "potential", status: "active",
+          country: "Türkiye", responsible_employee: "Erdi Ögetürk",
+        });
+        if (result?.[0]) {
+          nameToId[key] = result[0].id;
+          companiesAdded++;
+        }
+      }
+
+      // 2) Yeni projeler
+      const today = new Date().toISOString().split("T")[0];
+      for (const proj of SEED_PROJECTS) {
+        const key = proj.firma.trim().toLowerCase();
+        const custId = nameToId[key];
+        if (!custId) { skipped++; continue; }
+        // Aynı isimli proje zaten varsa atla
+        const dupe = projects.find(p => p.customerId === custId && p.name === proj.name);
+        if (dupe) { skipped++; continue; }
+        const result = await sb.insert("projects", {
+          name: proj.name, customer_id: custId,
+          contact_person: "", amount: proj.amount, currency: proj.currency,
+          project_date: today, status: proj.status, priority: proj.priority,
+          probability: proj.probability, region: proj.region,
+        });
+        if (result?.[0]) projectsAdded++;
+      }
+
+      setSeedResult({ companiesAdded, projectsAdded, skipped });
+      // Refresh
+      await fetchData();
+    } catch (e) { console.error("Seed error:", e); alert("Yükleme hatası: " + e.message); }
+    setSeedRunning(false);
   };
 
   // Save customer
@@ -1511,11 +1812,31 @@ export default function FiksCRM() {
         </div>
 
         <div style={styles.content}>
+          {/* SEED BANNER — Veri yoksa veya az ise göster */}
+          {!loading && customers.length < 5 && page === "dashboard" && (
+            <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E6FAC 100%)", color: "#fff", borderRadius: 14, padding: 20, marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ fontSize: 32 }}>📥</div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{t.seedTitle}</div>
+                <div style={{ fontSize: 13, opacity: .85 }}>{t.seedDesc}</div>
+                {seedResult && (
+                  <div style={{ marginTop: 8, fontSize: 12, background: "rgba(255,255,255,.15)", padding: "6px 10px", borderRadius: 8, display: "inline-block" }}>
+                    ✓ {t.seedDone}: {seedResult.companiesAdded} {t.seedAdded}{seedResult.projectsAdded} {t.seedProjAdded}
+                    {seedResult.skipped > 0 && <span style={{ opacity: .7 }}> ({seedResult.skipped} {t.seedAlreadyExists})</span>}
+                  </div>
+                )}
+              </div>
+              <button onClick={handleSeedDatabase} disabled={seedRunning} style={{ background: "#E87722", color: "#fff", border: "none", borderRadius: 10, padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: seedRunning ? "wait" : "pointer", opacity: seedRunning ? .6 : 1 }}>
+                {seedRunning ? t.seedRunning : t.seedRun}
+              </button>
+            </div>
+          )}
+
           {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
-          {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} />}
-          {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} onProjectClick={(p) => openProjectDetail(p, "projects")} />}
+          {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} onCustomerDelete={handleDeleteCustomer} />}
+          {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} onProjectClick={(p) => openProjectDetail(p, "projects")} onProjectDelete={handleDeleteProject} />}
           {page === "pipeline" && <Pipeline projects={projects} customers={customers} setProjects={(fn) => { const updated = typeof fn === "function" ? fn(projects) : fn; setProjects(updated); }} t={t} statusFilter={statusFilter} onStatusChange={handleProjectStatusChange} onProjectClick={(p) => openProjectDetail(p, "pipeline")} />}
-          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} onProjectClick={(p) => openProjectDetail(p, "customerDetail")} onNewProject={() => openProjectDetail({ customerId: selectedCustomer.id }, "customerDetail")} />}
+          {page === "customerDetail" && selectedCustomer && <CustomerDetail customer={selectedCustomer} customers={customers} t={t} setPage={setPage} projects={projects} onSave={handleSaveCustomer} onProjectClick={(p) => openProjectDetail(p, "customerDetail")} onNewProject={() => openProjectDetail({ customerId: selectedCustomer.id }, "customerDetail")} onCustomerDelete={handleDeleteCustomer} onProjectsChange={handleDeleteProject} />}
           {page === "projectDetail" && <ProjectDetail project={selectedProject} customers={customers} t={t} setPage={setPage} prevPage={projectPrevPage} onSave={handleSaveProject} onDelete={handleDeleteProject} />}
         </div>
       </main>
