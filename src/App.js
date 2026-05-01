@@ -1880,7 +1880,6 @@ export default function FiksCRM() {
           {/* SEED BANNER — Dashboard'da daima erişilebilir */}
           {!loading && page === "dashboard" && (
             (() => {
-              const expectedTotal = SEED_COMPANIES.length + SEED_PROJECTS.length; // 32 + 38 = 70
               const allAdded = seedResult && seedResult.companiesFailed === 0 && seedResult.projectsFailed === 0
                 && (seedResult.companiesExisted + seedResult.companiesAdded === SEED_COMPANIES.length)
                 && (seedResult.projectsExisted + seedResult.projectsAdded === SEED_PROJECTS.length);
