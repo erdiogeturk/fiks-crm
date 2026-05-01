@@ -259,7 +259,7 @@ const STATUSES = {
 };
 const PRIORITIES = { Yüksek: { color: "#ef4444", icon: "▲" }, Orta: { color: "#f59e0b", icon: "●" }, Düşük: { color: "#22c55e", icon: "▼" } };
 
-// ─── SEED DATA: Fiks Fırsat Takip — 32 firma / 38 proje ───
+// ─── SEED DATA: Fiks Fırsat Takip — 32 firma / 40 proje (hepsi TRY, E sütunu bazlı) ───
 const SEED_COMPANIES = [
   { name: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", logo_code: "AB", color: "#8b5cf6", sector: "Plastik / Ambalaj" },
   { name: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", logo_code: "VK", color: "#1B3A6B", sector: "Tekstil / Lüks Perakende" },
@@ -292,48 +292,51 @@ const SEED_COMPANIES = [
   { name: "Divan", logo_code: "DV", color: "#1B3A6B", sector: "Otelcilik / Turizm" },
   { name: "Havelsan", logo_code: "HV", color: "#1B3A6B", sector: "Savunma / BT" },
   { name: "HD Pidem", logo_code: "HD", color: "#0891b2", sector: "Hazır Yemek / Catering" },
-  { name: "Adana Kağıt", logo_code: "AK", color: "#a16207", sector: "Kağıt / Ambalaj" },
+  { name: "Adana Kağıt Firması", logo_code: "AK", color: "#a16207", sector: "Kağıt / Ambalaj" },
 ];
 
+// Bölge: "domestic" = Türkiye, "global" = Global (Yurt Dışı)
 const SEED_PROJECTS = [
-  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "S/4HANA Dönüşüm Projesi", status: "Lead", amount: 800000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
-  { firma: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", name: "S/4HANA Retail Dönüşümü", status: "Kaybedildi", amount: 185000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "SAKA Group", name: "SAKA Group S/4HANA Projesi", status: "Lead", amount: 600000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "SAKA Group", name: "SAP S/4HANA RFP Süreç Kapsamı Danışmanlık Teklifi", status: "Kazanıldı", amount: 23000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Akdeniz Chemson", name: "S/4HANA Projesi", status: "Kaybedildi", amount: 1900000, currency: "EUR", priority: "Yüksek", probability: 35, region: "domestic" },
-  { firma: "Almatis GmbH", name: "SAP Business Data Cloud (BDC) Platform Implementation", status: "Teklif", amount: 200700, currency: "EUR", priority: "Yüksek", probability: 50, region: "eu" },
-  { firma: "İzocam", name: "Kayseri Tesis Genişlemesi", status: "Kaybedildi", amount: 78400, currency: "EUR", priority: "Yüksek", probability: 30, region: "domestic" },
-  { firma: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", name: "SAP Framework Upgrade (JDK 21.9 & Spring Geçiş Projesi)", status: "Müzakere", amount: 420000, currency: "TRY", priority: "Orta", probability: 80, region: "domestic" },
-  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "ERSEM T&M SAP Modül Destek", status: "Kazanıldı", amount: 3000000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", name: "İthalat-İhracat Paketi", status: "Kazanıldı", amount: 25000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", name: "Devops Hizmeti", status: "Kazanıldı", amount: 840000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", name: "OpetFuchs Kârlılık Analiz Modeli Kurulum", status: "Kazanıldı", amount: 489000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Norm Digital A.Ş.", name: "Norm Fasteners Morocco SAP Roll-out Projesi", status: "Kazanıldı", amount: 5218600, currency: "TRY", priority: "Yüksek", probability: 100, region: "africa" },
-  { firma: "Oyak Dijital A.Ş.", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 4750000, currency: "TRY", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", name: "Kıbrıs Bordro Migrasyon", status: "Teklif", amount: 28875, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Destek", status: "Kazanıldı", amount: 15000000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Koç Sistem", name: "Tüpraş Tedarikçi Portali", status: "Teklif", amount: 26650, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "SAMAŞ Madencilik", name: "S/4HANA Dönüşüm Projesi", status: "Teklif", amount: 750000, currency: "EUR", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "Oypa", name: "Basis", status: "Teklif", amount: 12000, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Emlak Konut", name: "Destek", status: "Kazanıldı", amount: 17500, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "EKA", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 1295000, currency: "TRY", priority: "Yüksek", probability: 70, region: "domestic" },
-  { firma: "Kıvanç Kağıt", name: "WM Projesi", status: "Kazanıldı", amount: 1513200, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "ERDEMİR", name: "E-Mutabakat", status: "Kazanıldı", amount: 159000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Sarıbekir", name: "CRM Ürünü", status: "Teklif", amount: 0, currency: "EUR", priority: "Orta", probability: 50, region: "domestic" },
-  { firma: "COREX", name: "SAP Upgrade Fırsatı (Alkedos)", status: "Lead", amount: 0, currency: "EUR", priority: "Orta", probability: 30, region: "domestic" },
-  { firma: "Gübretaş", name: "PM Projesi", status: "Teklif", amount: 19980, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
-  { firma: "Moka United", name: "Basis (1 Yıllık)", status: "Lead", amount: 600000, currency: "TRY", priority: "Orta", probability: 40, region: "domestic" },
-  { firma: "Aydem", name: "Rise Taşıma", status: "Teklif", amount: 6500000, currency: "TRY", priority: "Yüksek", probability: 60, region: "domestic" },
-  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "Basis", status: "Kazanıldı", amount: 552000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Basis", status: "Kazanıldı", amount: 1350000, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "İpragaz", name: "Özgür Dedikasyon (Dedike Danışman)", status: "Kazanıldı", amount: 2906250, currency: "TRY", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Divan", name: "EHÖ", status: "Kazanıldı", amount: 12500, currency: "EUR", priority: "Yüksek", probability: 100, region: "domestic" },
-  { firma: "Havelsan", name: "HEAS-Kovan Projesi", status: "Kazanıldı", amount: 1200000, currency: "USD", priority: "Yüksek", probability: 100, region: "me" },
-  { firma: "Havelsan", name: "MSB (Kovan Projesi)", status: "Teklif", amount: 5850000, currency: "USD", priority: "Yüksek", probability: 70, region: "me" },
-  { firma: "HD Pidem", name: "Cash Management", status: "Lead", amount: 0, currency: "EUR", priority: "Orta", probability: 30, region: "domestic" },
-  { firma: "Divan", name: "S/4HANA Projesi", status: "Lead", amount: 750000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
-  { firma: "Adana Kağıt", name: "S/4HANA Projesi", status: "Lead", amount: 800000, currency: "EUR", priority: "Yüksek", probability: 50, region: "domestic" },
-  { firma: "Emlak Konut", name: "Satınalma Süreci Projesi", status: "Lead", amount: 35000, currency: "TRY", priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "S/4HANA Dönüşüm Projesi", status: "Lead", amount: 40000000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "SAKA Group S/4HANA Proje Lisansı", status: "Lead", amount: 12500000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", name: "S/4HANA Retail Dönüşümü", status: "Kaybedildi", amount: 9250000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "SAKA Group", name: "SAKA Group S/4HANA Projesi", status: "Lead", amount: 30000000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAKA Group S/4HANA Proje Lisansı", status: "Lead", amount: 8750000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAP S/4HANA RFP Süreç Kapsamı Danışmanlık Teklifi", status: "Kazanıldı", amount: 1150000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Akdeniz Chemson", name: "S/4HANA Projesi", status: "Kaybedildi", amount: 95000000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "Almatis GmbH", name: "SAP Business Data Cloud (BDC) Platform Implementation", status: "Teklif", amount: 10035000, priority: "Yüksek", probability: 50, region: "global" },
+  { firma: "İzocam", name: "Kayseri Tesis Genişlemesi", status: "Kaybedildi", amount: 3920000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", name: "SAP Framework Upgrade (JDK 21.9 & Spring Geçiş Projesi)", status: "Müzakere", amount: 420000, priority: "Orta", probability: 80, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "ERSEM T&M SAP Modül Destek", status: "Kazanıldı", amount: 3000000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", name: "İthalat-İhracat Paketi", status: "Kazanıldı", amount: 1250000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", name: "Devops Hizmeti", status: "Kazanıldı", amount: 840000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", name: "OpetFuchs Kârlılık Analiz Modeli Kurulum", status: "Kazanıldı", amount: 489000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Norm Digital A.Ş.", name: "Norm Fasteners Morocco SAP Roll-out Projesi", status: "Kazanıldı", amount: 5218600, priority: "Yüksek", probability: 100, region: "global" },
+  { firma: "Oyak Dijital A.Ş.", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 4750000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", name: "Kıbrıs Bordro Migrasyon", status: "Teklif", amount: 1443750, priority: "Yüksek", probability: 70, region: "global" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Destek", status: "Kazanıldı", amount: 15000000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Koç Sistem", name: "Tüpraş Tedarikçi Portali", status: "Teklif", amount: 1332500, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAMAŞ Madencilik", name: "S/4HANA Dönüşüm Projesi", status: "Teklif", amount: 37500000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oypa", name: "Basis", status: "Teklif", amount: 600000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Emlak Konut", name: "Destek", status: "Kazanıldı", amount: 17500, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "EKA", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 1295000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Kıvanç Kağıt", name: "WM Projesi", status: "Kazanıldı", amount: 1513200, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ERDEMİR", name: "E-Mutabakat", status: "Kazanıldı", amount: 159000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Sarıbekir", name: "CRM Ürünü", status: "Teklif", amount: 0, priority: "Orta", probability: 50, region: "domestic" },
+  { firma: "COREX", name: "SAP Upgrade Fırsatı (Alkedos)", status: "Lead", amount: 0, priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Gübretaş", name: "PM Projesi", status: "Teklif", amount: 999000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Moka United", name: "Basis", status: "Lead", amount: 600000, priority: "Orta", probability: 40, region: "domestic" },
+  { firma: "Aydem", name: "Rise Taşıma", status: "Teklif", amount: 6500000, priority: "Yüksek", probability: 60, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "Basis", status: "Kazanıldı", amount: 552000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Basis", status: "Kazanıldı", amount: 1350000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "İpragaz", name: "Özgür Dedikasyon", status: "Kazanıldı", amount: 2906250, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Divan", name: "EHÖ", status: "Kazanıldı", amount: 625000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Havelsan", name: "HEAS-Kovan", status: "Kazanıldı", amount: 60000000, priority: "Yüksek", probability: 100, region: "global" },
+  { firma: "Havelsan", name: "MSB", status: "Teklif", amount: 292500000, priority: "Yüksek", probability: 70, region: "global" },
+  { firma: "HD Pidem", name: "Cash Management", status: "Lead", amount: 0, priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Divan", name: "S/4HANA Projesi", status: "Lead", amount: 37500000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Adana Kağıt Firması", name: "S/4HANA Projesi", status: "Lead", amount: 40000000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Emlak Konut", name: "Satınalma Süreci Projesi", status: "Lead", amount: 1750000, priority: "Yüksek", probability: 50, region: "domestic" },
 ];
 
 // ─── HELPERS ───
@@ -460,19 +463,7 @@ const Icons = {
 
 // ─── DASHBOARD ───
 function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelectedCustomer }) {
-  const [regionFilter, setRegionFilter] = useState("all");
-
-  const REGIONS = [
-    { key: "all", label: t.allRegions },
-    { key: "domestic", label: t.region_domestic },
-    { key: "eu", label: t.region_eu },
-    { key: "me", label: t.region_me },
-    { key: "africa", label: t.region_africa },
-    { key: "blacksea", label: t.region_blacksea },
-    { key: "other", label: t.region_other },
-  ];
-
-  const filteredProjects = regionFilter === "all" ? projects : projects.filter(p => (p.region || "domestic") === regionFilter);
+  const filteredProjects = projects;
 
   const totalProjects = filteredProjects.length;
   const uniqueCustomers = new Set(filteredProjects.map(p => p.customerId)).size;
@@ -503,18 +494,6 @@ function Dashboard({ projects, customers, t, setPage, setStatusFilter, setSelect
 
   return (
     <div>
-      {/* Bölge filtresi */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {REGIONS.map(r => (
-          <button key={r.key} onClick={() => setRegionFilter(r.key)} style={{
-            padding: "6px 14px", borderRadius: 20, border: "1.5px solid",
-            borderColor: regionFilter === r.key ? "#3b82f6" : "#e5e7eb",
-            background: regionFilter === r.key ? "#eff6ff" : "#fff",
-            color: regionFilter === r.key ? "#3b82f6" : "#64748b",
-            fontSize: 12, fontWeight: regionFilter === r.key ? 700 : 400, cursor: "pointer",
-          }}>{r.label}</button>
-        ))}
-      </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
         {kpiCards.map((k, i) => (
           <div key={i} onClick={k.onClick} style={{
@@ -884,9 +863,8 @@ function CustomersList({ customers, t, setPage, setSelectedCustomer, projects, o
 function ProjectDetail({ project, customers, t, setPage, prevPage, onSave, onDelete }) {
   const isNew = !project?.id;
   const REGION_OPTIONS = [
-    { key: "domestic", label: t.region_domestic }, { key: "eu", label: t.region_eu },
-    { key: "me", label: t.region_me }, { key: "africa", label: t.region_africa },
-    { key: "blacksea", label: t.region_blacksea }, { key: "other", label: t.region_other },
+    { key: "domestic", label: "Türkiye" },
+    { key: "global", label: "Global" },
   ];
 
   const [form, setForm] = useState({
@@ -1680,39 +1658,51 @@ export default function FiksCRM() {
   };
 
   const handleSeedDatabase = async () => {
+    // GÜÇLÜ ONAY — yıkıcı işlem
+    if (!window.confirm("⚠️ DİKKAT: Mevcut tüm müşteri, proje, kontak ve aktivite kayıtları SİLİNECEK ve sadece Excel'deki 32 firma + 40 proje yüklenecek.\n\nDevam edilsin mi?")) return;
+
     setSeedRunning(true);
     setSeedResult(null);
-    let companiesAdded = 0, companiesExisted = 0, companiesFailed = 0;
-    let projectsAdded = 0, projectsExisted = 0, projectsFailed = 0;
+    let companiesAdded = 0, companiesFailed = 0;
+    let projectsAdded = 0, projectsFailed = 0;
+    let wiped = 0;
     const failedItems = [];
 
     try {
-      // En güncel state'i çek (kullanıcı veriyi değiştirmiş olabilir)
-      const [latestCusts, latestProjs] = await Promise.all([
-        sb.query("customers", {}),
+      // 0) MEVCUT VERİYİ TEMİZLE
+      setSeedProgress({ phase: "Mevcut veriler temizleniyor", current: 0, total: 1 });
+      const [oldProjs, oldContacts, oldActs, oldCusts] = await Promise.all([
         sb.query("projects", {}),
+        sb.query("customer_contacts", {}).catch(() => []),
+        sb.query("customer_activities", {}).catch(() => []),
+        sb.query("customers", {}),
       ]);
-      const liveCusts = (latestCusts || []);
-      const liveProjs = (latestProjs || []);
+      // Önce bağımlı kayıtları sil
+      for (const a of (oldActs || [])) { await sb.remove("customer_activities", a.id).catch(() => {}); }
+      for (const c of (oldContacts || [])) { await sb.remove("customer_contacts", c.id).catch(() => {}); }
+      for (const p of (oldProjs || [])) {
+        await sb.remove("projects", p.id).catch(() => {});
+        wiped++;
+      }
+      for (const c of (oldCusts || [])) {
+        await sb.remove("customers", c.id).catch(() => {});
+        wiped++;
+      }
+      await sleep(200);
 
-      // Map: lowercased name -> id
+      // 1) FİRMALAR
       const nameToId = {};
-      liveCusts.forEach(c => { if (c?.name) nameToId[c.name.trim().toLowerCase()] = c.id; });
-
-      // 1) Firmalar
       setSeedProgress({ phase: "Firmalar", current: 0, total: SEED_COMPANIES.length });
       for (let i = 0; i < SEED_COMPANIES.length; i++) {
         const co = SEED_COMPANIES[i];
         setSeedProgress({ phase: "Firmalar", current: i + 1, total: SEED_COMPANIES.length });
-        const key = co.name.trim().toLowerCase();
-        if (nameToId[key]) { companiesExisted++; continue; }
         const inserted = await safeInsert("customers", {
           name: co.name, logo_code: co.logo_code, color: co.color,
           customer_type: "corporate", customer_role: "potential", status: "active",
           country: "Türkiye", responsible_employee: "Erdi Ögetürk",
         }, `Firma: ${co.name}`);
         if (inserted) {
-          nameToId[key] = inserted.id;
+          nameToId[co.name.trim().toLowerCase()] = inserted.id;
           companiesAdded++;
         } else {
           companiesFailed++;
@@ -1721,47 +1711,37 @@ export default function FiksCRM() {
         await sleep(50);
       }
 
-      // 2) Projeler
+      // 2) PROJELER (hepsi TRY)
       setSeedProgress({ phase: "Projeler", current: 0, total: SEED_PROJECTS.length });
       const today = new Date().toISOString().split("T")[0];
-      const existingProjKey = new Set(
-        liveProjs.map(p => `${p.customer_id}::${(p.name || "").trim().toLowerCase()}`)
-      );
       for (let i = 0; i < SEED_PROJECTS.length; i++) {
         const proj = SEED_PROJECTS[i];
         setSeedProgress({ phase: "Projeler", current: i + 1, total: SEED_PROJECTS.length });
-        const key = proj.firma.trim().toLowerCase();
-        const custId = nameToId[key];
+        const custId = nameToId[proj.firma.trim().toLowerCase()];
         if (!custId) {
           projectsFailed++;
           failedItems.push(`Proje (firma yok): ${proj.firma} - ${proj.name}`);
           continue;
         }
-        const dupKey = `${custId}::${proj.name.trim().toLowerCase()}`;
-        if (existingProjKey.has(dupKey)) { projectsExisted++; continue; }
         const inserted = await safeInsert("projects", {
           name: proj.name, customer_id: custId,
-          contact_person: "", amount: proj.amount, currency: proj.currency,
+          contact_person: "", amount: proj.amount, currency: "TRY",
           project_date: today, status: proj.status, priority: proj.priority,
           probability: proj.probability, region: proj.region,
         }, `Proje: ${proj.firma} - ${proj.name}`);
-        if (inserted) {
-          existingProjKey.add(dupKey);
-          projectsAdded++;
-        } else {
-          projectsFailed++;
-          failedItems.push(`Proje: ${proj.firma} - ${proj.name}`);
-        }
+        if (inserted) projectsAdded++;
+        else { projectsFailed++; failedItems.push(`Proje: ${proj.firma} - ${proj.name}`); }
         await sleep(50);
       }
 
       setSeedResult({
-        companiesAdded, companiesExisted, companiesFailed,
-        projectsAdded, projectsExisted, projectsFailed,
+        wiped, companiesAdded, companiesFailed,
+        projectsAdded, projectsFailed,
+        companiesExisted: 0, projectsExisted: 0,
         failedItems,
       });
       if (failedItems.length > 0) {
-        console.group("[seed] Eklenemeyen kayıtlar (tekrar deneyebilirsiniz)");
+        console.group("[seed] Eklenemeyen kayıtlar (Tekrar Dene'ye basın)");
         failedItems.forEach(x => console.warn(x));
         console.groupEnd();
       }
@@ -1797,6 +1777,9 @@ export default function FiksCRM() {
 
   const totalPipeline = projects.reduce((a, p) => a + toTRY(p.amount, p.currency), 0);
   const weightedPipeline = projects.reduce((a, p) => a + toTRY(p.amount, p.currency) * (p.probability / 100), 0);
+  const wonTotal = projects.filter(p => p.status === "Kazanıldı").reduce((a, p) => a + toTRY(p.amount, p.currency), 0);
+  const lostTotal = projects.filter(p => p.status === "Kaybedildi").reduce((a, p) => a + toTRY(p.amount, p.currency), 0);
+  const potentialTotal = projects.filter(p => ["Lead","Teklif","Müzakere","Beklemede"].includes(p.status)).reduce((a, p) => a + toTRY(p.amount, p.currency), 0);
 
   const navItems = [
     { key: "dashboard", icon: Icons.dashboard, label: t.dashboard },
@@ -1846,8 +1829,23 @@ export default function FiksCRM() {
         </nav>
         <div style={styles.pipelineTotal}>
           <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500, marginBottom: 4 }}>{t.totalPipeline}</div>
-          <div style={{ fontSize: 18, fontWeight: 800 }}>{formatFullTRY(totalPipeline)}</div>
-          <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>{t.weighted}: {formatFullTRY(weightedPipeline)}</div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>{formatFullTRY(totalPipeline)}</div>
+          <div style={{ fontSize: 11, color: "#64748b", marginTop: 2, marginBottom: 12 }}>{t.weighted}: {formatFullTRY(weightedPipeline)}</div>
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div>
+              <div style={{ fontSize: 10, color: "#22c55e", fontWeight: 700, letterSpacing: .5 }}>✓ KAZANILAN</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#22c55e" }}>{formatFullTRY(wonTotal)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "#fbbf24", fontWeight: 700, letterSpacing: .5 }}>◆ POTANSİYEL SATIŞ</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fbbf24" }}>{formatFullTRY(potentialTotal)}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "#ef4444", fontWeight: 700, letterSpacing: .5 }}>✕ KAYBEDİLEN</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#ef4444" }}>{formatFullTRY(lostTotal)}</div>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -1880,18 +1878,15 @@ export default function FiksCRM() {
           {/* SEED BANNER — Dashboard'da daima erişilebilir */}
           {!loading && page === "dashboard" && (
             (() => {
-              const allAdded = seedResult && seedResult.companiesFailed === 0 && seedResult.projectsFailed === 0
-                && (seedResult.companiesExisted + seedResult.companiesAdded === SEED_COMPANIES.length)
-                && (seedResult.projectsExisted + seedResult.projectsAdded === SEED_PROJECTS.length);
-              const collapsedAndComplete = customers.length >= SEED_COMPANIES.length && projects.length >= SEED_PROJECTS.length && !seedResult;
+              const collapsedAndComplete = customers.length === SEED_COMPANIES.length && projects.length === SEED_PROJECTS.length && !seedResult;
               if (collapsedAndComplete) return null;
               return (
                 <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E6FAC 100%)", color: "#fff", borderRadius: 14, padding: 20, marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
                   <div style={{ fontSize: 32 }}>📥</div>
                   <div style={{ flex: 1, minWidth: 240 }}>
-                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{t.seedTitle}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>Excel'den Tam Senkronizasyon</div>
                     <div style={{ fontSize: 13, opacity: .85 }}>
-                      {t.seedDesc} <span style={{ opacity: .7 }}>({SEED_COMPANIES.length} firma · {SEED_PROJECTS.length} proje)</span>
+                      Mevcut tüm CRM verisi silinir, yerine Fıırsat Takip Excel'indeki <b>32 firma · 40 proje</b> yüklenir.
                     </div>
                     {seedRunning && seedProgress.total > 0 && (
                       <div style={{ marginTop: 10 }}>
@@ -1903,10 +1898,8 @@ export default function FiksCRM() {
                     )}
                     {seedResult && !seedRunning && (
                       <div style={{ marginTop: 10, fontSize: 12, background: "rgba(255,255,255,.12)", padding: "10px 12px", borderRadius: 8, lineHeight: 1.6 }}>
-                        <div>✓ <b>{seedResult.companiesAdded}</b> yeni firma + <b>{seedResult.projectsAdded}</b> yeni proje eklendi</div>
-                        {(seedResult.companiesExisted > 0 || seedResult.projectsExisted > 0) && (
-                          <div style={{ opacity: .85 }}>↺ Mevcut: {seedResult.companiesExisted} firma · {seedResult.projectsExisted} proje (atlandı)</div>
-                        )}
+                        {seedResult.wiped > 0 && <div style={{ opacity: .85 }}>🗑 {seedResult.wiped} eski kayıt silindi</div>}
+                        <div>✓ <b>{seedResult.companiesAdded}</b> firma + <b>{seedResult.projectsAdded}</b> proje yüklendi</div>
                         {(seedResult.companiesFailed > 0 || seedResult.projectsFailed > 0) && (
                           <div style={{ color: "#fca5a5" }}>⚠ Eklenemeyen: {seedResult.companiesFailed} firma · {seedResult.projectsFailed} proje — Tekrar Dene'ye basın</div>
                         )}
@@ -1915,9 +1908,9 @@ export default function FiksCRM() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     <button onClick={handleSeedDatabase} disabled={seedRunning} style={{ background: "#E87722", color: "#fff", border: "none", borderRadius: 10, padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: seedRunning ? "wait" : "pointer", opacity: seedRunning ? .6 : 1, whiteSpace: "nowrap" }}>
-                      {seedRunning ? t.seedRunning : (seedResult ? "Tekrar Dene" : t.seedRun)}
+                      {seedRunning ? "Yükleniyor..." : (seedResult ? "Tekrar Sıfırla" : "Sıfırla ve Yükle")}
                     </button>
-                    {allAdded && (
+                    {seedResult && seedResult.companiesFailed === 0 && seedResult.projectsFailed === 0 && (
                       <button onClick={() => setSeedResult(null)} style={{ background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: 10, padding: "6px 14px", fontSize: 12, cursor: "pointer", opacity: .8 }}>
                         Banner'ı Gizle
                       </button>
