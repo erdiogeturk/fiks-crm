@@ -1656,57 +1656,122 @@ export default function FiksCRM() {
     } catch (e) { console.error("Delete customer error:", e); alert("Silme hatası: " + e.message); }
   };
 
-  // ─── SEED DATA — Excel'den toplu veri yükleme ───
+  // ─── SEED DATA — Excel'den toplu veri yükleme (idempotent, retryable) ───
   const [seedRunning, setSeedRunning] = useState(false);
   const [seedResult, setSeedResult] = useState(null);
+  const [seedProgress, setSeedProgress] = useState({ phase: "", current: 0, total: 0 });
+
+  // küçük gecikme — Supabase rate-limit koruması
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  // retry'lı insert
+  const safeInsert = async (table, payload, label) => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await sb.insert(table, payload);
+        if (result?.[0]) return result[0];
+        console.warn(`[seed] ${label}: empty/invalid response (attempt ${attempt})`, result);
+      } catch (e) {
+        console.error(`[seed] ${label}: error (attempt ${attempt})`, e);
+      }
+      await sleep(300 * attempt);
+    }
+    return null;
+  };
 
   const handleSeedDatabase = async () => {
     setSeedRunning(true);
-    let companiesAdded = 0, projectsAdded = 0, skipped = 0;
-    try {
-      // Mevcut müşteri adlarını topla (case-insensitive)
-      const existingNames = new Set(customers.map(c => c.name.trim().toLowerCase()));
-      const nameToId = {};
-      customers.forEach(c => { nameToId[c.name.trim().toLowerCase()] = c.id; });
+    setSeedResult(null);
+    let companiesAdded = 0, companiesExisted = 0, companiesFailed = 0;
+    let projectsAdded = 0, projectsExisted = 0, projectsFailed = 0;
+    const failedItems = [];
 
-      // 1) Yeni firmalar
-      for (const co of SEED_COMPANIES) {
+    try {
+      // En güncel state'i çek (kullanıcı veriyi değiştirmiş olabilir)
+      const [latestCusts, latestProjs] = await Promise.all([
+        sb.query("customers", {}),
+        sb.query("projects", {}),
+      ]);
+      const liveCusts = (latestCusts || []);
+      const liveProjs = (latestProjs || []);
+
+      // Map: lowercased name -> id
+      const nameToId = {};
+      liveCusts.forEach(c => { if (c?.name) nameToId[c.name.trim().toLowerCase()] = c.id; });
+
+      // 1) Firmalar
+      setSeedProgress({ phase: "Firmalar", current: 0, total: SEED_COMPANIES.length });
+      for (let i = 0; i < SEED_COMPANIES.length; i++) {
+        const co = SEED_COMPANIES[i];
+        setSeedProgress({ phase: "Firmalar", current: i + 1, total: SEED_COMPANIES.length });
         const key = co.name.trim().toLowerCase();
-        if (existingNames.has(key)) { skipped++; continue; }
-        const result = await sb.insert("customers", {
+        if (nameToId[key]) { companiesExisted++; continue; }
+        const inserted = await safeInsert("customers", {
           name: co.name, logo_code: co.logo_code, color: co.color,
           customer_type: "corporate", customer_role: "potential", status: "active",
           country: "Türkiye", responsible_employee: "Erdi Ögetürk",
-        });
-        if (result?.[0]) {
-          nameToId[key] = result[0].id;
+        }, `Firma: ${co.name}`);
+        if (inserted) {
+          nameToId[key] = inserted.id;
           companiesAdded++;
+        } else {
+          companiesFailed++;
+          failedItems.push(`Firma: ${co.name}`);
         }
+        await sleep(50);
       }
 
-      // 2) Yeni projeler
+      // 2) Projeler
+      setSeedProgress({ phase: "Projeler", current: 0, total: SEED_PROJECTS.length });
       const today = new Date().toISOString().split("T")[0];
-      for (const proj of SEED_PROJECTS) {
+      const existingProjKey = new Set(
+        liveProjs.map(p => `${p.customer_id}::${(p.name || "").trim().toLowerCase()}`)
+      );
+      for (let i = 0; i < SEED_PROJECTS.length; i++) {
+        const proj = SEED_PROJECTS[i];
+        setSeedProgress({ phase: "Projeler", current: i + 1, total: SEED_PROJECTS.length });
         const key = proj.firma.trim().toLowerCase();
         const custId = nameToId[key];
-        if (!custId) { skipped++; continue; }
-        // Aynı isimli proje zaten varsa atla
-        const dupe = projects.find(p => p.customerId === custId && p.name === proj.name);
-        if (dupe) { skipped++; continue; }
-        const result = await sb.insert("projects", {
+        if (!custId) {
+          projectsFailed++;
+          failedItems.push(`Proje (firma yok): ${proj.firma} - ${proj.name}`);
+          continue;
+        }
+        const dupKey = `${custId}::${proj.name.trim().toLowerCase()}`;
+        if (existingProjKey.has(dupKey)) { projectsExisted++; continue; }
+        const inserted = await safeInsert("projects", {
           name: proj.name, customer_id: custId,
           contact_person: "", amount: proj.amount, currency: proj.currency,
           project_date: today, status: proj.status, priority: proj.priority,
           probability: proj.probability, region: proj.region,
-        });
-        if (result?.[0]) projectsAdded++;
+        }, `Proje: ${proj.firma} - ${proj.name}`);
+        if (inserted) {
+          existingProjKey.add(dupKey);
+          projectsAdded++;
+        } else {
+          projectsFailed++;
+          failedItems.push(`Proje: ${proj.firma} - ${proj.name}`);
+        }
+        await sleep(50);
       }
 
-      setSeedResult({ companiesAdded, projectsAdded, skipped });
-      // Refresh
+      setSeedResult({
+        companiesAdded, companiesExisted, companiesFailed,
+        projectsAdded, projectsExisted, projectsFailed,
+        failedItems,
+      });
+      if (failedItems.length > 0) {
+        console.group("[seed] Eklenemeyen kayıtlar (tekrar deneyebilirsiniz)");
+        failedItems.forEach(x => console.warn(x));
+        console.groupEnd();
+      }
       await fetchData();
-    } catch (e) { console.error("Seed error:", e); alert("Yükleme hatası: " + e.message); }
+    } catch (e) {
+      console.error("Seed error:", e);
+      alert("Yükleme hatası: " + e.message);
+    }
     setSeedRunning(false);
+    setSeedProgress({ phase: "", current: 0, total: 0 });
   };
 
   // Save customer
@@ -1812,24 +1877,56 @@ export default function FiksCRM() {
         </div>
 
         <div style={styles.content}>
-          {/* SEED BANNER — Veri yoksa veya az ise göster */}
-          {!loading && customers.length < 5 && page === "dashboard" && (
-            <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E6FAC 100%)", color: "#fff", borderRadius: 14, padding: 20, marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ fontSize: 32 }}>📥</div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{t.seedTitle}</div>
-                <div style={{ fontSize: 13, opacity: .85 }}>{t.seedDesc}</div>
-                {seedResult && (
-                  <div style={{ marginTop: 8, fontSize: 12, background: "rgba(255,255,255,.15)", padding: "6px 10px", borderRadius: 8, display: "inline-block" }}>
-                    ✓ {t.seedDone}: {seedResult.companiesAdded} {t.seedAdded}{seedResult.projectsAdded} {t.seedProjAdded}
-                    {seedResult.skipped > 0 && <span style={{ opacity: .7 }}> ({seedResult.skipped} {t.seedAlreadyExists})</span>}
+          {/* SEED BANNER — Dashboard'da daima erişilebilir */}
+          {!loading && page === "dashboard" && (
+            (() => {
+              const expectedTotal = SEED_COMPANIES.length + SEED_PROJECTS.length; // 32 + 38 = 70
+              const allAdded = seedResult && seedResult.companiesFailed === 0 && seedResult.projectsFailed === 0
+                && (seedResult.companiesExisted + seedResult.companiesAdded === SEED_COMPANIES.length)
+                && (seedResult.projectsExisted + seedResult.projectsAdded === SEED_PROJECTS.length);
+              const collapsedAndComplete = customers.length >= SEED_COMPANIES.length && projects.length >= SEED_PROJECTS.length && !seedResult;
+              if (collapsedAndComplete) return null;
+              return (
+                <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E6FAC 100%)", color: "#fff", borderRadius: 14, padding: 20, marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 32 }}>📥</div>
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{t.seedTitle}</div>
+                    <div style={{ fontSize: 13, opacity: .85 }}>
+                      {t.seedDesc} <span style={{ opacity: .7 }}>({SEED_COMPANIES.length} firma · {SEED_PROJECTS.length} proje)</span>
+                    </div>
+                    {seedRunning && seedProgress.total > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ fontSize: 12, marginBottom: 4 }}>{seedProgress.phase}: {seedProgress.current} / {seedProgress.total}</div>
+                        <div style={{ height: 6, background: "rgba(255,255,255,.2)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${(seedProgress.current / seedProgress.total) * 100}%`, height: "100%", background: "#E87722", transition: "width .2s" }} />
+                        </div>
+                      </div>
+                    )}
+                    {seedResult && !seedRunning && (
+                      <div style={{ marginTop: 10, fontSize: 12, background: "rgba(255,255,255,.12)", padding: "10px 12px", borderRadius: 8, lineHeight: 1.6 }}>
+                        <div>✓ <b>{seedResult.companiesAdded}</b> yeni firma + <b>{seedResult.projectsAdded}</b> yeni proje eklendi</div>
+                        {(seedResult.companiesExisted > 0 || seedResult.projectsExisted > 0) && (
+                          <div style={{ opacity: .85 }}>↺ Mevcut: {seedResult.companiesExisted} firma · {seedResult.projectsExisted} proje (atlandı)</div>
+                        )}
+                        {(seedResult.companiesFailed > 0 || seedResult.projectsFailed > 0) && (
+                          <div style={{ color: "#fca5a5" }}>⚠ Eklenemeyen: {seedResult.companiesFailed} firma · {seedResult.projectsFailed} proje — Tekrar Dene'ye basın</div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <button onClick={handleSeedDatabase} disabled={seedRunning} style={{ background: "#E87722", color: "#fff", border: "none", borderRadius: 10, padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: seedRunning ? "wait" : "pointer", opacity: seedRunning ? .6 : 1 }}>
-                {seedRunning ? t.seedRunning : t.seedRun}
-              </button>
-            </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button onClick={handleSeedDatabase} disabled={seedRunning} style={{ background: "#E87722", color: "#fff", border: "none", borderRadius: 10, padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: seedRunning ? "wait" : "pointer", opacity: seedRunning ? .6 : 1, whiteSpace: "nowrap" }}>
+                      {seedRunning ? t.seedRunning : (seedResult ? "Tekrar Dene" : t.seedRun)}
+                    </button>
+                    {allAdded && (
+                      <button onClick={() => setSeedResult(null)} style={{ background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: 10, padding: "6px 14px", fontSize: 12, cursor: "pointer", opacity: .8 }}>
+                        Banner'ı Gizle
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()
           )}
 
           {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
