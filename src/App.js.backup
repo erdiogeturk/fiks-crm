@@ -259,6 +259,86 @@ const STATUSES = {
 };
 const PRIORITIES = { Yüksek: { color: "#ef4444", icon: "▲" }, Orta: { color: "#f59e0b", icon: "●" }, Düşük: { color: "#22c55e", icon: "▼" } };
 
+// ─── SEED DATA: Fiks Fırsat Takip — 32 firma / 40 proje (hepsi TRY, E sütunu bazlı) ───
+const SEED_COMPANIES = [
+  { name: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", logo_code: "AB", color: "#8b5cf6", sector: "Plastik / Ambalaj" },
+  { name: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", logo_code: "VK", color: "#1B3A6B", sector: "Tekstil / Lüks Perakende" },
+  { name: "SAKA Group", logo_code: "SK", color: "#84cc16", sector: "Gıda / İçecek" },
+  { name: "Akdeniz Chemson", logo_code: "AC", color: "#00C4A7", sector: "Kimya (PVC Stabilizatör)" },
+  { name: "Almatis GmbH", logo_code: "AL", color: "#2E6FAC", sector: "Endüstriyel Kimya" },
+  { name: "İzocam", logo_code: "İZ", color: "#fbbf24", sector: "Yalıtım Malzemeleri" },
+  { name: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", logo_code: "BR", color: "#ef4444", sector: "Makina / Güç Sistemleri" },
+  { name: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", logo_code: "ER", color: "#6b7280", sector: "Çelik" },
+  { name: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", logo_code: "YE", color: "#a16207", sector: "Orman Ürünleri" },
+  { name: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", logo_code: "AS", color: "#64748b", sector: "Alüminyum" },
+  { name: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", logo_code: "KS", color: "#dc2626", sector: "BT Hizmetleri" },
+  { name: "Norm Digital A.Ş.", logo_code: "ND", color: "#2E6FAC", sector: "BT / Bağlantı Elemanları" },
+  { name: "Oyak Dijital A.Ş.", logo_code: "OD", color: "#1B3A6B", sector: "BT (OYAK Group)" },
+  { name: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", logo_code: "OP", color: "#E87722", sector: "Perakende / Turizm (OYAK)" },
+  { name: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", logo_code: "ER", color: "#374151", sector: "Çelik" },
+  { name: "Koç Sistem", logo_code: "KS", color: "#dc2626", sector: "BT Hizmetleri" },
+  { name: "SAMAŞ Madencilik", logo_code: "SM", color: "#78350f", sector: "Madencilik" },
+  { name: "Oypa", logo_code: "OY", color: "#E87722", sector: "Perakende (OYAK)" },
+  { name: "Emlak Konut", logo_code: "EK", color: "#16a34a", sector: "Gayrimenkul" },
+  { name: "EKA", logo_code: "EK", color: "#0891b2", sector: "Kurumsal Müşteri" },
+  { name: "Kıvanç Kağıt", logo_code: "KK", color: "#a16207", sector: "Kağıt / Ambalaj" },
+  { name: "ERDEMİR", logo_code: "ER", color: "#374151", sector: "Çelik" },
+  { name: "Sarıbekir", logo_code: "SR", color: "#0891b2", sector: "Kurumsal Müşteri" },
+  { name: "COREX", logo_code: "CX", color: "#7c3aed", sector: "Endüstri" },
+  { name: "Gübretaş", logo_code: "GB", color: "#16a34a", sector: "Gübre / Kimya" },
+  { name: "Moka United", logo_code: "MU", color: "#1B3A6B", sector: "Fintech / Ödeme" },
+  { name: "Aydem", logo_code: "AY", color: "#f59e0b", sector: "Enerji" },
+  { name: "İpragaz", logo_code: "İP", color: "#dc2626", sector: "Enerji / LPG" },
+  { name: "Divan", logo_code: "DV", color: "#1B3A6B", sector: "Otelcilik / Turizm" },
+  { name: "Havelsan", logo_code: "HV", color: "#1B3A6B", sector: "Savunma / BT" },
+  { name: "HD Pidem", logo_code: "HD", color: "#0891b2", sector: "Hazır Yemek / Catering" },
+  { name: "Adana Kağıt Firması", logo_code: "AK", color: "#a16207", sector: "Kağıt / Ambalaj" },
+];
+
+// Bölge: "domestic" = Türkiye, "global" = Global (Yurt Dışı)
+const SEED_PROJECTS = [
+  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "S/4HANA Dönüşüm Projesi", status: "Lead", amount: 40000000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Abdioğulları Plastik ve Ambalaj San. A.Ş.", name: "SAKA Group S/4HANA Proje Lisansı", status: "Lead", amount: 12500000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "VAKKO Tekstil ve Hazır Giyim San. A.Ş.", name: "S/4HANA Retail Dönüşümü", status: "Kaybedildi", amount: 9250000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "SAKA Group", name: "SAKA Group S/4HANA Projesi", status: "Lead", amount: 30000000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAKA Group S/4HANA Proje Lisansı", status: "Lead", amount: 8750000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAKA Group", name: "SAP S/4HANA RFP Süreç Kapsamı Danışmanlık Teklifi", status: "Kazanıldı", amount: 1150000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Akdeniz Chemson", name: "S/4HANA Projesi", status: "Kaybedildi", amount: 95000000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "Almatis GmbH", name: "SAP Business Data Cloud (BDC) Platform Implementation", status: "Teklif", amount: 10035000, priority: "Yüksek", probability: 50, region: "global" },
+  { firma: "İzocam", name: "Kayseri Tesis Genişlemesi", status: "Kaybedildi", amount: 3920000, priority: "Yüksek", probability: 0, region: "domestic" },
+  { firma: "BORUSAN MAKİNA VE GÜÇ SİSTEMLERİ SAN. VE TİC. A.Ş.", name: "SAP Framework Upgrade (JDK 21.9 & Spring Geçiş Projesi)", status: "Müzakere", amount: 420000, priority: "Orta", probability: 80, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "ERSEM T&M SAP Modül Destek", status: "Kazanıldı", amount: 3000000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Yıldız Entegre Ağaç San. ve Tic. A.Ş.", name: "İthalat-İhracat Paketi", status: "Kazanıldı", amount: 1250000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ASAŞ Alüminyum Sanayi ve Ticaret A.Ş.", name: "Devops Hizmeti", status: "Kazanıldı", amount: 840000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "KoçSistem Bilgi ve İletişim Hizmetleri A.Ş.", name: "OpetFuchs Kârlılık Analiz Modeli Kurulum", status: "Kazanıldı", amount: 489000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Norm Digital A.Ş.", name: "Norm Fasteners Morocco SAP Roll-out Projesi", status: "Kazanıldı", amount: 5218600, priority: "Yüksek", probability: 100, region: "global" },
+  { firma: "Oyak Dijital A.Ş.", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 4750000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oyak Pazarlama Hizmet ve Turizm A.Ş.", name: "Kıbrıs Bordro Migrasyon", status: "Teklif", amount: 1443750, priority: "Yüksek", probability: 70, region: "global" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Destek", status: "Kazanıldı", amount: 15000000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Koç Sistem", name: "Tüpraş Tedarikçi Portali", status: "Teklif", amount: 1332500, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "SAMAŞ Madencilik", name: "S/4HANA Dönüşüm Projesi", status: "Teklif", amount: 37500000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Oypa", name: "Basis", status: "Teklif", amount: 600000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Emlak Konut", name: "Destek", status: "Kazanıldı", amount: 17500, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "EKA", name: "Seyahat ve Masraf Yönetimi", status: "Teklif", amount: 1295000, priority: "Yüksek", probability: 70, region: "domestic" },
+  { firma: "Kıvanç Kağıt", name: "WM Projesi", status: "Kazanıldı", amount: 1513200, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "ERDEMİR", name: "E-Mutabakat", status: "Kazanıldı", amount: 159000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Sarıbekir", name: "CRM Ürünü", status: "Teklif", amount: 0, priority: "Orta", probability: 50, region: "domestic" },
+  { firma: "COREX", name: "SAP Upgrade Fırsatı (Alkedos)", status: "Lead", amount: 0, priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Gübretaş", name: "PM Projesi", status: "Teklif", amount: 999000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Moka United", name: "Basis", status: "Lead", amount: 600000, priority: "Orta", probability: 40, region: "domestic" },
+  { firma: "Aydem", name: "Rise Taşıma", status: "Teklif", amount: 6500000, priority: "Yüksek", probability: 60, region: "domestic" },
+  { firma: "Erdemir Çelik Servis Merkezi A.Ş. (ERSEM)", name: "Basis", status: "Kazanıldı", amount: 552000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Ereğli Demir ve Çelik Fabrikaları T.A.Ş.", name: "Basis", status: "Kazanıldı", amount: 1350000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "İpragaz", name: "Özgür Dedikasyon", status: "Kazanıldı", amount: 2906250, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Divan", name: "EHÖ", status: "Kazanıldı", amount: 625000, priority: "Yüksek", probability: 100, region: "domestic" },
+  { firma: "Havelsan", name: "HEAS-Kovan", status: "Kazanıldı", amount: 60000000, priority: "Yüksek", probability: 100, region: "global" },
+  { firma: "Havelsan", name: "MSB", status: "Teklif", amount: 292500000, priority: "Yüksek", probability: 70, region: "global" },
+  { firma: "HD Pidem", name: "Cash Management", status: "Lead", amount: 0, priority: "Orta", probability: 30, region: "domestic" },
+  { firma: "Divan", name: "S/4HANA Projesi", status: "Lead", amount: 37500000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Adana Kağıt Firması", name: "S/4HANA Projesi", status: "Lead", amount: 40000000, priority: "Yüksek", probability: 50, region: "domestic" },
+  { firma: "Emlak Konut", name: "Satınalma Süreci Projesi", status: "Lead", amount: 1750000, priority: "Yüksek", probability: 50, region: "domestic" },
+];
+
 // ─── HELPERS ───
 const formatCurrency = (amount, currency) => {
   const n = Number(amount);
@@ -1554,6 +1634,126 @@ export default function FiksCRM() {
     } catch (e) { console.error("Delete customer error:", e); alert("Silme hatası: " + e.message); }
   };
 
+  // ─── SEED DATA — Excel'den toplu veri yükleme (idempotent, retryable) ───
+  const [seedRunning, setSeedRunning] = useState(false);
+  const [seedResult, setSeedResult] = useState(null);
+  const [seedProgress, setSeedProgress] = useState({ phase: "", current: 0, total: 0 });
+
+  // küçük gecikme — Supabase rate-limit koruması
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  // retry'lı insert
+  const safeInsert = async (table, payload, label) => {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const result = await sb.insert(table, payload);
+        if (result?.[0]) return result[0];
+        console.warn(`[seed] ${label}: empty/invalid response (attempt ${attempt})`, result);
+      } catch (e) {
+        console.error(`[seed] ${label}: error (attempt ${attempt})`, e);
+      }
+      await sleep(300 * attempt);
+    }
+    return null;
+  };
+
+  const handleSeedDatabase = async () => {
+    // GÜÇLÜ ONAY — yıkıcı işlem
+    if (!window.confirm("⚠️ DİKKAT: Mevcut tüm müşteri, proje, kontak ve aktivite kayıtları SİLİNECEK ve sadece Excel'deki 32 firma + 40 proje yüklenecek.\n\nDevam edilsin mi?")) return;
+
+    setSeedRunning(true);
+    setSeedResult(null);
+    let companiesAdded = 0, companiesFailed = 0;
+    let projectsAdded = 0, projectsFailed = 0;
+    let wiped = 0;
+    const failedItems = [];
+
+    try {
+      // 0) MEVCUT VERİYİ TEMİZLE
+      setSeedProgress({ phase: "Mevcut veriler temizleniyor", current: 0, total: 1 });
+      const [oldProjs, oldContacts, oldActs, oldCusts] = await Promise.all([
+        sb.query("projects", {}),
+        sb.query("customer_contacts", {}).catch(() => []),
+        sb.query("customer_activities", {}).catch(() => []),
+        sb.query("customers", {}),
+      ]);
+      // Önce bağımlı kayıtları sil
+      for (const a of (oldActs || [])) { await sb.remove("customer_activities", a.id).catch(() => {}); }
+      for (const c of (oldContacts || [])) { await sb.remove("customer_contacts", c.id).catch(() => {}); }
+      for (const p of (oldProjs || [])) {
+        await sb.remove("projects", p.id).catch(() => {});
+        wiped++;
+      }
+      for (const c of (oldCusts || [])) {
+        await sb.remove("customers", c.id).catch(() => {});
+        wiped++;
+      }
+      await sleep(200);
+
+      // 1) FİRMALAR
+      const nameToId = {};
+      setSeedProgress({ phase: "Firmalar", current: 0, total: SEED_COMPANIES.length });
+      for (let i = 0; i < SEED_COMPANIES.length; i++) {
+        const co = SEED_COMPANIES[i];
+        setSeedProgress({ phase: "Firmalar", current: i + 1, total: SEED_COMPANIES.length });
+        const inserted = await safeInsert("customers", {
+          name: co.name, logo_code: co.logo_code, color: co.color,
+          customer_type: "corporate", customer_role: "potential", status: "active",
+          country: "Türkiye", responsible_employee: "Erdi Ögetürk",
+        }, `Firma: ${co.name}`);
+        if (inserted) {
+          nameToId[co.name.trim().toLowerCase()] = inserted.id;
+          companiesAdded++;
+        } else {
+          companiesFailed++;
+          failedItems.push(`Firma: ${co.name}`);
+        }
+        await sleep(50);
+      }
+
+      // 2) PROJELER (hepsi TRY)
+      setSeedProgress({ phase: "Projeler", current: 0, total: SEED_PROJECTS.length });
+      const today = new Date().toISOString().split("T")[0];
+      for (let i = 0; i < SEED_PROJECTS.length; i++) {
+        const proj = SEED_PROJECTS[i];
+        setSeedProgress({ phase: "Projeler", current: i + 1, total: SEED_PROJECTS.length });
+        const custId = nameToId[proj.firma.trim().toLowerCase()];
+        if (!custId) {
+          projectsFailed++;
+          failedItems.push(`Proje (firma yok): ${proj.firma} - ${proj.name}`);
+          continue;
+        }
+        const inserted = await safeInsert("projects", {
+          name: proj.name, customer_id: custId,
+          contact_person: "", amount: proj.amount, currency: "TRY",
+          project_date: today, status: proj.status, priority: proj.priority,
+          probability: proj.probability, region: proj.region,
+        }, `Proje: ${proj.firma} - ${proj.name}`);
+        if (inserted) projectsAdded++;
+        else { projectsFailed++; failedItems.push(`Proje: ${proj.firma} - ${proj.name}`); }
+        await sleep(50);
+      }
+
+      setSeedResult({
+        wiped, companiesAdded, companiesFailed,
+        projectsAdded, projectsFailed,
+        companiesExisted: 0, projectsExisted: 0,
+        failedItems,
+      });
+      if (failedItems.length > 0) {
+        console.group("[seed] Eklenemeyen kayıtlar (Tekrar Dene'ye basın)");
+        failedItems.forEach(x => console.warn(x));
+        console.groupEnd();
+      }
+      await fetchData();
+    } catch (e) {
+      console.error("Seed error:", e);
+      alert("Yükleme hatası: " + e.message);
+    }
+    setSeedRunning(false);
+    setSeedProgress({ phase: "", current: 0, total: 0 });
+  };
+
   // Save customer
   const handleSaveCustomer = async (custData) => {
     if (custData.isNew) {
@@ -1675,6 +1875,52 @@ export default function FiksCRM() {
         </div>
 
         <div style={styles.content}>
+          {/* SEED BANNER — Dashboard'da daima erişilebilir */}
+          {!loading && page === "dashboard" && (
+            (() => {
+              const collapsedAndComplete = customers.length === SEED_COMPANIES.length && projects.length === SEED_PROJECTS.length && !seedResult;
+              if (collapsedAndComplete) return null;
+              return (
+                <div style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #2E6FAC 100%)", color: "#fff", borderRadius: 14, padding: 20, marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 32 }}>📥</div>
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 2 }}>Excel'den Tam Senkronizasyon</div>
+                    <div style={{ fontSize: 13, opacity: .85 }}>
+                      Mevcut tüm CRM verisi silinir, yerine Fıırsat Takip Excel'indeki <b>32 firma · 40 proje</b> yüklenir.
+                    </div>
+                    {seedRunning && seedProgress.total > 0 && (
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ fontSize: 12, marginBottom: 4 }}>{seedProgress.phase}: {seedProgress.current} / {seedProgress.total}</div>
+                        <div style={{ height: 6, background: "rgba(255,255,255,.2)", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${(seedProgress.current / seedProgress.total) * 100}%`, height: "100%", background: "#E87722", transition: "width .2s" }} />
+                        </div>
+                      </div>
+                    )}
+                    {seedResult && !seedRunning && (
+                      <div style={{ marginTop: 10, fontSize: 12, background: "rgba(255,255,255,.12)", padding: "10px 12px", borderRadius: 8, lineHeight: 1.6 }}>
+                        {seedResult.wiped > 0 && <div style={{ opacity: .85 }}>🗑 {seedResult.wiped} eski kayıt silindi</div>}
+                        <div>✓ <b>{seedResult.companiesAdded}</b> firma + <b>{seedResult.projectsAdded}</b> proje yüklendi</div>
+                        {(seedResult.companiesFailed > 0 || seedResult.projectsFailed > 0) && (
+                          <div style={{ color: "#fca5a5" }}>⚠ Eklenemeyen: {seedResult.companiesFailed} firma · {seedResult.projectsFailed} proje — Tekrar Dene'ye basın</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button onClick={handleSeedDatabase} disabled={seedRunning} style={{ background: "#E87722", color: "#fff", border: "none", borderRadius: 10, padding: "12px 22px", fontSize: 14, fontWeight: 700, cursor: seedRunning ? "wait" : "pointer", opacity: seedRunning ? .6 : 1, whiteSpace: "nowrap" }}>
+                      {seedRunning ? "Yükleniyor..." : (seedResult ? "Tekrar Sıfırla" : "Sıfırla ve Yükle")}
+                    </button>
+                    {seedResult && seedResult.companiesFailed === 0 && seedResult.projectsFailed === 0 && (
+                      <button onClick={() => setSeedResult(null)} style={{ background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,.3)", borderRadius: 10, padding: "6px 14px", fontSize: 12, cursor: "pointer", opacity: .8 }}>
+                        Banner'ı Gizle
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()
+          )}
+
           {page === "dashboard" && <Dashboard projects={projects} customers={customers} t={t} setPage={setPage} setStatusFilter={setStatusFilter} setSelectedCustomer={setSelectedCustomer} />}
           {page === "customers" && <CustomersList customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} projects={projects} onCustomerDelete={handleDeleteCustomer} />}
           {page === "projects" && <ProjectsTable projects={projects} customers={customers} t={t} setPage={setPage} setSelectedCustomer={setSelectedCustomer} onProjectClick={(p) => openProjectDetail(p, "projects")} onProjectDelete={handleDeleteProject} />}
